@@ -18,9 +18,11 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            'auth' => [
+
+            'auth' => fn () => [
                 'user' => $request->session()->get('supabase_user'),
             ],
+
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
             ],

@@ -22,3 +22,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Jangan commit file berisi credential lokal
+/seeds/env_campushub

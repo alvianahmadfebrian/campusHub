@@ -1,77 +1,70 @@
 <script setup>
-import { Head, useForm } from '@inertiajs/vue3'
+import { Head } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 
-defineProps({ items: Array })
-
-const form = useForm({
-    nama_event: '',
-    deskripsi: '',
-    tanggal: '',
-    lokasi: '',
-    link_pendaftaran: '',
-    gambar: null,
+defineProps({
+    items: {
+        type: Array,
+        default: () => [],
+    },
 })
 
-function submit() {
-    form.post('/events', {
-        forceFormData: true,
-        onSuccess: () => form.reset(),
-    })
+function targetLabel(item) {
+    return item.target_jurusan || 'Semua Jurusan'
+}
+
+function formatTanggal(value) {
+    if (!value) return 'Tanggal belum tersedia'
+
+    return new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    }).format(new Date(value))
 }
 </script>
 
 <template>
     <Head title="Event" />
+
     <AppLayout>
-        <h1 class="title">Event Kampus</h1>
-        <p class="muted">Seminar, lomba, workshop, dan kegiatan mahasiswa.</p>
-
-        <div class="grid grid-2" style="margin-top: 22px; align-items: start;">
-            <div class="card">
-                <h2>Tambah Event</h2>
-                <form @submit.prevent="submit">
-                    <div class="form-row">
-                        <label class="label">Nama Event</label>
-                        <input class="input" v-model="form.nama_event" />
-                        <div v-if="form.errors.nama_event" class="error">{{ form.errors.nama_event }}</div>
-                    </div>
-                    <div class="form-row">
-                        <label class="label">Tanggal</label>
-                        <input class="input" v-model="form.tanggal" type="date" />
-                    </div>
-                    <div class="form-row">
-                        <label class="label">Lokasi</label>
-                        <input class="input" v-model="form.lokasi" />
-                    </div>
-                    <div class="form-row">
-                        <label class="label">Link Pendaftaran</label>
-                        <input class="input" v-model="form.link_pendaftaran" placeholder="https://..." />
-                    </div>
-                    <div class="form-row">
-                        <label class="label">Deskripsi</label>
-                        <textarea class="input" rows="4" v-model="form.deskripsi"></textarea>
-                    </div>
-                    <div class="form-row">
-                        <label class="label">Gambar Event</label>
-                        <input class="input" type="file" accept="image/*" @input="form.gambar = $event.target.files[0]" />
-                        <div v-if="form.errors.gambar" class="error">{{ form.errors.gambar }}</div>
-                    </div>
-                    <button class="btn" :disabled="form.processing">Simpan</button>
-                </form>
+        <header class="page-header">
+            <div>
+                <span class="eyebrow">Agenda Kampus</span>
+                <h1 class="title">Event Mahasiswa</h1>
+                <p class="muted">Event umum dan kegiatan khusus jurusan kamu.</p>
             </div>
+        </header>
 
-            <div class="card">
-                <h2>Daftar Event</h2>
-                <p v-if="items.length === 0" class="muted">Belum ada data.</p>
-                <div v-for="item in items" :key="item.id" style="padding: 14px 0; border-bottom: 1px solid #eeeef4;">
-                    <img v-if="item.gambar_url" :src="item.gambar_url" style="width:100%;max-height:180px;object-fit:cover;border-radius:14px;margin-bottom:10px;" />
-                    <b>{{ item.nama_event }}</b>
-                    <p class="muted">{{ item.tanggal || '-' }} · {{ item.lokasi || '-' }}</p>
-                    <p>{{ item.deskripsi }}</p>
-                    <a v-if="item.link_pendaftaran" :href="item.link_pendaftaran" target="_blank" style="color:#3730a3;font-weight:700;">Daftar</a>
+        <div class="grid grid-3 section-gap">
+            <p v-if="items.length === 0" class="card muted">Belum ada event yang tersedia.</p>
+
+            <article v-for="item in items" :key="item.id" class="card event-card">
+                <img
+                    v-if="item.gambar_url"
+                    :src="item.gambar_url"
+                    :alt="item.nama_event"
+                    class="event-image"
+                />
+
+                <div class="inline-badges">
+                    <span class="badge success">{{ formatTanggal(item.tanggal) }}</span>
+                    <span class="badge neutral">{{ targetLabel(item) }}</span>
                 </div>
-            </div>
+                <h2>{{ item.nama_event }}</h2>
+                <p class="muted">{{ item.lokasi || 'Lokasi belum ditentukan' }}</p>
+                <p class="body-text">{{ item.deskripsi || 'Tidak ada deskripsi.' }}</p>
+
+                <a
+                    v-if="item.link_pendaftaran"
+                    class="btn secondary content-button"
+                    :href="item.link_pendaftaran"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    Daftar Event
+                </a>
+            </article>
         </div>
     </AppLayout>
 </template>

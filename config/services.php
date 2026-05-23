@@ -6,12 +6,6 @@ return [
     |--------------------------------------------------------------------------
     | Third Party Services
     |--------------------------------------------------------------------------
-    |
-    | This file is for storing the credentials for third party services such
-    | as Mailgun, Postmark, AWS and more. This file provides the de facto
-    | location for this type of information, allowing packages to have
-    | a conventional file to locate the various service credentials.
-    |
     */
 
     'postmark' => [
@@ -32,6 +26,22 @@ return [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
+        ],
+    ],
+
+    'supabase' => [
+        'url' => env('SUPABASE_URL'),
+        'anon_key' => env('SUPABASE_ANON_KEY'),
+        'storage' => [
+            'key_id' => env('SUPABASE_STORAGE_KEY_ID'),
+            'secret_key' => env('SUPABASE_STORAGE_SECRET_ACCESS_KEY'),
+            'region' => env('SUPABASE_STORAGE_REGION', 'ap-south-1'),
+            'endpoint' => env('SUPABASE_STORAGE_ENDPOINT'),
+            'buckets' => [
+                'profile' => env('SUPABASE_BUCKET_PROFILE', 'profile-photos'),
+                'materi' => env('SUPABASE_BUCKET_MATERI', 'materi-files'),
+                'event' => env('SUPABASE_BUCKET_EVENT', 'event-images'),
+            ],
         ],
     ],
 

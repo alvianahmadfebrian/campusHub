@@ -2,54 +2,89 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 class SupabaseAuthService
 {
-    private function baseUrl(): string
+    private string $url;
+    private string $anonKey;
+
+    public function __construct()
     {
-        return rtrim((string) env('SUPABASE_URL'), '/');
+        $this->url = rtrim((string) config('services.supabase.url'), '/');
+        $this->anonKey = (string) config('services.supabase.anon_key');
+
+        if ($this->url === '' || $this->anonKey === '') {
+            throw new RuntimeException('SUPABASE_URL atau SUPABASE_ANON_KEY belum diisi pada file .env.');
+        }
     }
 
-    private function headers(): array
+    private function client(): PendingRequest
     {
-        $key = (string) env('SUPABASE_ANON_KEY');
-
-        return [
-            'apikey' => $key,
-            'Authorization' => 'Bearer ' . $key,
-            'Content-Type' => 'application/json',
-        ];
+        return Http::baseUrl($this->url . '/auth/v1')
+            ->acceptJson()
+            ->asJson()
+            ->withHeaders([
+                'apikey' => $this->anonKey,
+                'Authorization' => 'Bearer ' . $this->anonKey,
+            ]);
     }
 
-    public function signUp(string $email, string $password): array
+    public function signUp(string $email, string $password, array $metadata = []): array
     {
-        $response = Http::withHeaders($this->headers())
-            ->post($this->baseUrl() . '/auth/v1/signup', [
+        return $this->handleResponse(
+            $this->client()->post('/signup', [
                 'email' => $email,
                 'password' => $password,
-            ]);
-
-        if ($response->failed()) {
-            throw new RuntimeException($response->json('msg') ?? $response->json('error_description') ?? 'Register gagal.');
-        }
-
-        return $response->json();
+                'data' => $metadata,
+            ]),
+            'Register gagal.'
+        );
     }
 
     public function signIn(string $email, string $password): array
     {
-        $response = Http::withHeaders($this->headers())
-            ->post($this->baseUrl() . '/auth/v1/token?grant_type=password', [
+        return $this->handleResponse(
+            $this->client()->post('/token?grant_type=password', [
                 'email' => $email,
                 'password' => $password,
-            ]);
+            ]),
+            'Email atau password salah.'
+        );
+    }
 
-        if ($response->failed()) {
-            throw new RuntimeException($response->json('error_description') ?? $response->json('msg') ?? 'Email atau password salah.');
+    public function signOut(?string $accessToken): void
+    {
+        if (!$accessToken) {
+            return;
         }
 
-        return $response->json();
+        $response = $this->client()
+            ->withToken($accessToken)
+            ->post('/logout');
+
+        if ($response->failed() && $response->status() !== 401) {
+            $this->handleResponse($response, 'Logout dari Supabase gagal.');
+        }
+    }
+
+    private function handleResponse(Response $response, string $fallback): array
+    {
+        $payload = $response->json() ?? [];
+
+        if ($response->failed()) {
+            $message = $payload['msg']
+                ?? $payload['message']
+                ?? $payload['error_description']
+                ?? $payload['error']
+                ?? $fallback;
+
+            throw new RuntimeException($message);
+        }
+
+        return $payload;
     }
 }
