@@ -1,8 +1,10 @@
 <script setup>
 import { Link, router, usePage } from '@inertiajs/vue3'
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
 const page = usePage()
+
+const sidebarOpen = ref(false)
 
 const user = computed(() => page.props.auth?.user ?? {})
 const flash = computed(() => page.props.flash ?? {})
@@ -12,15 +14,82 @@ function isActive(path) {
     return currentPath.value === path || currentPath.value.startsWith(`${path}/`)
 }
 
+function openSidebar() {
+    sidebarOpen.value = true
+}
+
+function closeSidebar() {
+    sidebarOpen.value = false
+}
+
 function logout() {
+    closeSidebar()
     router.post('/logout')
 }
+
+/*
+|--------------------------------------------------------------------------
+| Tutup Sidebar Otomatis Setelah Pindah Halaman
+|--------------------------------------------------------------------------
+*/
+watch(
+    () => page.url,
+    () => {
+        closeSidebar()
+    }
+)
+
+/*
+|--------------------------------------------------------------------------
+| Cegah Background Ikut Scroll Saat Sidebar Mobile Dibuka
+|--------------------------------------------------------------------------
+*/
+watch(sidebarOpen, (isOpen) => {
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+})
+
+onBeforeUnmount(() => {
+    document.body.style.overflow = ''
+})
 </script>
 
 <template>
     <div class="admin-shell">
+        <!-- OVERLAY MOBILE -->
+        <transition name="sidebar-fade">
+            <div
+                v-if="sidebarOpen"
+                class="admin-sidebar-overlay"
+                aria-hidden="true"
+                @click="closeSidebar"
+            ></div>
+        </transition>
+
         <!-- SIDEBAR -->
-        <aside class="admin-sidebar">
+        <aside
+            class="admin-sidebar"
+            :class="{ 'mobile-open': sidebarOpen }"
+        >
+            <!-- CLOSE BUTTON MOBILE -->
+            <button
+                type="button"
+                class="admin-sidebar-close"
+                aria-label="Tutup menu navigasi"
+                @click="closeSidebar"
+            >
+                <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                >
+                    <path d="M18 6 6 18" />
+                    <path d="M6 6l12 12" />
+                </svg>
+            </button>
+
             <!-- BRAND -->
             <div class="admin-brand">
                 <div class="admin-brand-icon">
@@ -49,6 +118,7 @@ function logout() {
                     href="/admin/dashboard"
                     class="admin-nav-item"
                     :class="{ active: isActive('/admin/dashboard') }"
+                    @click="closeSidebar"
                 >
                     <svg
                         width="16"
@@ -70,6 +140,7 @@ function logout() {
                     href="/admin/akademik"
                     class="admin-nav-item"
                     :class="{ active: isActive('/admin/akademik') }"
+                    @click="closeSidebar"
                 >
                     <svg
                         width="16"
@@ -89,6 +160,7 @@ function logout() {
                     href="/admin/jadwal"
                     class="admin-nav-item"
                     :class="{ active: isActive('/admin/jadwal') }"
+                    @click="closeSidebar"
                 >
                     <svg
                         width="16"
@@ -98,7 +170,7 @@ function logout() {
                         stroke="currentColor"
                         stroke-width="2"
                     >
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
                         <line x1="16" y1="2" x2="16" y2="6" />
                         <line x1="8" y1="2" x2="8" y2="6" />
                         <line x1="3" y1="10" x2="21" y2="10" />
@@ -110,22 +182,48 @@ function logout() {
                     href="/admin/konten"
                     class="admin-nav-item"
                     :class="{ active: isActive('/admin/konten') }"
+                    @click="closeSidebar"
                 >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
-                        <polyline points="10 9 9 9 8 9"/>
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
                     </svg>
                     Manajemen Konten
                 </Link>
 
-                <!-- CHATBOT AI -->
+                <Link
+                    href="/drive"
+                    class="admin-nav-item"
+                    :class="{ active: isActive('/drive') }"
+                    @click="closeSidebar"
+                >
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+                    </svg>
+                    Drive
+                </Link>
+
                 <Link
                     href="/chat"
                     class="admin-nav-item"
                     :class="{ active: isActive('/chat') }"
+                    @click="closeSidebar"
                 >
                     <svg
                         width="16"
@@ -146,6 +244,7 @@ function logout() {
                     href="/admin/laporan"
                     class="admin-nav-item"
                     :class="{ active: isActive('/admin/laporan') }"
+                    @click="closeSidebar"
                 >
                     <svg
                         width="16"
@@ -166,6 +265,7 @@ function logout() {
                     href="/admin/pengaturan"
                     class="admin-nav-item"
                     :class="{ active: isActive('/admin/pengaturan') }"
+                    @click="closeSidebar"
                 >
                     <svg
                         width="16"
@@ -184,7 +284,11 @@ function logout() {
 
             <!-- FOOTER -->
             <div class="admin-sidebar-footer">
-                <Link href="/dashboard" class="admin-footer-link">
+                <Link
+                    href="/dashboard"
+                    class="admin-footer-link"
+                    @click="closeSidebar"
+                >
                     <svg
                         width="15"
                         height="15"
@@ -199,7 +303,11 @@ function logout() {
                     Portal Mahasiswa
                 </Link>
 
-                <button class="admin-footer-link admin-logout-btn" @click="logout">
+                <button
+                    type="button"
+                    class="admin-footer-link admin-logout-btn"
+                    @click="logout"
+                >
                     <svg
                         width="15"
                         height="15"
@@ -221,6 +329,28 @@ function logout() {
         <div class="admin-main">
             <!-- TOPBAR -->
             <header class="admin-topbar">
+                <!-- HAMBURGER BUTTON MOBILE -->
+                <button
+                    type="button"
+                    class="admin-mobile-menu-btn"
+                    aria-label="Buka menu navigasi"
+                    :aria-expanded="sidebarOpen"
+                    @click="openSidebar"
+                >
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path d="M4 6h16" />
+                        <path d="M4 12h16" />
+                        <path d="M4 18h16" />
+                    </svg>
+                </button>
+
                 <div class="admin-search">
                     <svg
                         width="15"
@@ -241,7 +371,7 @@ function logout() {
                 </div>
 
                 <div class="admin-topbar-right">
-                    <button class="admin-icon-btn">
+                    <button type="button" class="admin-icon-btn">
                         <svg
                             width="16"
                             height="16"
@@ -259,13 +389,25 @@ function logout() {
 
                     <div class="admin-user-pill">
                         <div class="admin-user-avatar">
-                            <img v-if="user.avatar" :src="user.avatar" alt="avatar" />
-                            <span v-else>{{ (user.nama || 'A').charAt(0).toUpperCase() }}</span>
+                            <img
+                                v-if="user.avatar || user.avatar_url"
+                                :src="user.avatar || user.avatar_url"
+                                alt="avatar"
+                            />
+
+                            <span v-else>
+                                {{ (user.nama || 'A').charAt(0).toUpperCase() }}
+                            </span>
                         </div>
 
-                        <div>
-                            <p class="admin-user-name">{{ user.nama || 'Administrator' }}</p>
-                            <p class="admin-user-role">Admin CampusHub</p>
+                        <div class="admin-user-meta">
+                            <p class="admin-user-name">
+                                {{ user.nama || 'Administrator' }}
+                            </p>
+
+                            <p class="admin-user-role">
+                                Admin CampusHub
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -281,9 +423,192 @@ function logout() {
             </div>
 
             <!-- PAGE CONTENT -->
-            <div class="admin-body">
+            <main class="admin-body">
                 <slot />
-            </div>
+            </main>
         </div>
     </div>
 </template>
+
+<style scoped>
+/*
+|--------------------------------------------------------------------------
+| Desktop
+|--------------------------------------------------------------------------
+| Style utama sidebar/dashboard yang sudah ada di app.css tetap digunakan.
+| Bagian ini menambahkan kontrol drawer untuk layar kecil.
+*/
+
+.admin-mobile-menu-btn,
+.admin-sidebar-close {
+    display: none;
+}
+
+.admin-sidebar-overlay {
+    display: none;
+}
+
+.sidebar-fade-enter-active,
+.sidebar-fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.sidebar-fade-enter-from,
+.sidebar-fade-leave-to {
+    opacity: 0;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Tablet & Mobile
+|--------------------------------------------------------------------------
+*/
+@media (max-width: 900px) {
+    .admin-shell {
+        display: block !important;
+        min-height: 100vh;
+    }
+
+    .admin-mobile-menu-btn {
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        width: 39px;
+        height: 39px;
+        border: 1px solid #e2e8f0;
+        border-radius: 11px;
+        background: #ffffff;
+        color: #334155;
+        cursor: pointer;
+    }
+
+    .admin-mobile-menu-btn:hover {
+        border-color: #99f6e4;
+        background: #f0fdfa;
+        color: #0f766e;
+    }
+
+    .admin-sidebar-overlay {
+        position: fixed;
+        z-index: 999;
+        inset: 0;
+        display: block;
+        background: rgba(15, 23, 42, 0.38);
+        backdrop-filter: blur(2px);
+    }
+
+    .admin-sidebar {
+        position: fixed !important;
+        z-index: 1000;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        display: flex !important;
+        flex-direction: column;
+        width: 265px !important;
+        height: 100vh !important;
+        overflow-y: auto;
+        background: #ffffff;
+        transform: translateX(-104%);
+        transition: transform 0.25s ease;
+        box-shadow: none;
+    }
+
+    .admin-sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: 14px 0 42px rgba(15, 23, 42, 0.14);
+    }
+
+    .admin-sidebar-close {
+        position: absolute;
+        z-index: 2;
+        top: 16px;
+        right: 12px;
+        display: grid;
+        place-items: center;
+        width: 35px;
+        height: 35px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #475569;
+        cursor: pointer;
+    }
+
+    .admin-sidebar-close:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+    }
+
+    .admin-brand {
+        padding-right: 54px !important;
+    }
+
+    .admin-main {
+        width: 100% !important;
+        min-width: 0;
+        margin-left: 0 !important;
+    }
+
+    .admin-topbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 14px !important;
+    }
+
+    .admin-search {
+        flex: 1;
+        width: auto !important;
+        max-width: none !important;
+        min-width: 0;
+    }
+
+    .admin-search input {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .admin-body {
+        padding: 20px 16px !important;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Mobile Kecil
+|--------------------------------------------------------------------------
+*/
+@media (max-width: 560px) {
+    .admin-topbar {
+        gap: 8px;
+        padding: 0 10px !important;
+    }
+
+    .admin-mobile-menu-btn {
+        width: 37px;
+        height: 37px;
+    }
+
+    .admin-search input {
+        font-size: 12px;
+    }
+
+    .admin-search input::placeholder {
+        color: transparent;
+    }
+
+    .admin-user-pill {
+        padding: 4px !important;
+        gap: 0 !important;
+    }
+
+    .admin-user-meta {
+        display: none;
+    }
+
+    .admin-body {
+        padding: 18px 12px !important;
+    }
+}
+</style>

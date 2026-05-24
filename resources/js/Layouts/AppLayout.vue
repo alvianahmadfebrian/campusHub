@@ -1,185 +1,760 @@
 <script setup>
-import { Link, usePage, router } from '@inertiajs/vue3'
-import { computed } from 'vue'
+import { Link, router, usePage } from '@inertiajs/vue3'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
 const page = usePage()
-const user = computed(() => page.props.auth?.user || null)
-const isAdmin = computed(() => user.value?.role === 'admin')
-const homeUrl = computed(() => (isAdmin.value ? '/admin/dashboard' : '/dashboard'))
 
-// Ambil nama & NIM dari props profile jika tersedia
-const profile = computed(() => page.props.profile || null)
-const displayName = computed(() => profile.value?.nama || user.value?.email || 'Mahasiswa')
-const displayNim  = computed(() => profile.value?.nim  || '')
-const avatarUrl   = computed(() => profile.value?.avatar_url || null)
-const initials    = computed(() => {
-    const n = displayName.value
-    return n.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
+const sidebarOpen = ref(false)
+
+const authUser = computed(() => page.props.auth?.user ?? {})
+const profile = computed(() => page.props.profile ?? page.props.auth?.profile ?? null)
+const flash = computed(() => page.props.flash ?? {})
+const currentPath = computed(() => page.url.split('?')[0])
+
+const displayName = computed(() => {
+    return profile.value?.nama
+        || authUser.value?.nama
+        || authUser.value?.email
+        || 'Mahasiswa'
 })
 
-function logout() { router.post('/logout') }
-function isActive(path) {
-    const currentPath = page.url.split('?')[0]
+const displayNim = computed(() => {
+    return profile.value?.nim || ''
+})
 
-    return currentPath === path || currentPath.startsWith(`${path}/`)
+const avatarUrl = computed(() => {
+    return profile.value?.avatar_url || authUser.value?.avatar_url || null
+})
+
+const initials = computed(() => {
+    return String(displayName.value)
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((item) => item.charAt(0))
+        .join('')
+        .toUpperCase() || 'M'
+})
+
+function isActive(path) {
+    return currentPath.value === path || currentPath.value.startsWith(`${path}/`)
 }
+
+function openSidebar() {
+    sidebarOpen.value = true
+}
+
+function closeSidebar() {
+    sidebarOpen.value = false
+}
+
+function logout() {
+    closeSidebar()
+    router.post('/logout')
+}
+
+watch(
+    () => page.url,
+    () => {
+        closeSidebar()
+    }
+)
+
+watch(sidebarOpen, (opened) => {
+    if (typeof document !== 'undefined') {
+        document.body.style.overflow = opened ? 'hidden' : ''
+    }
+})
+
+onBeforeUnmount(() => {
+    if (typeof document !== 'undefined') {
+        document.body.style.overflow = ''
+    }
+})
 </script>
 
 <template>
-    <div class="sl-shell">
+    <div class="student-shell">
+        <!-- OVERLAY MOBILE -->
+        <transition name="drawer-fade">
+            <div
+                v-if="sidebarOpen"
+                class="student-overlay"
+                @click="closeSidebar"
+            ></div>
+        </transition>
 
-        <!-- ── SIDEBAR ── -->
-        <aside class="sl-sidebar">
-            <!-- Brand -->
-            <div class="sl-brand">
-                <div class="sl-brand-icon">
-                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                        <path d="M10 2L18 6V10C18 14.418 14.418 18 10 18C5.582 18 2 14.418 2 10V6L10 2Z" fill="white" fill-opacity="0.35"/>
-                        <path d="M7 10L9.5 12.5L14 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- SIDEBAR -->
+        <aside
+            class="student-sidebar"
+            :class="{ open: sidebarOpen }"
+        >
+            <button
+                type="button"
+                class="sidebar-close"
+                aria-label="Tutup menu"
+                @click="closeSidebar"
+            >
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </button>
+
+            <!-- BRAND -->
+            <div class="student-brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M12 3 21 7.5 12 12 3 7.5 12 3Z"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="M7 10v5c3 2.7 7 2.7 10 0v-5"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linejoin="round"
+                        />
                     </svg>
                 </div>
+
                 <div>
-                    <p class="sl-brand-name">CampusHub</p>
-                    <p class="sl-brand-sub">Student Portal</p>
+                    <p class="brand-name">CampusHub</p>
+                    <p class="brand-subtitle">Student Portal</p>
                 </div>
             </div>
 
-            <!-- Nav -->
-            <nav class="sl-nav">
-                <Link :href="homeUrl" class="sl-nav-item" :class="{ active: isActive('/dashboard') || isActive('/admin/dashboard') }">
-                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                        <rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                        <rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                        <rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                        <rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+            <!-- MENU -->
+            <nav class="student-nav">
+                <Link
+                    href="/dashboard"
+                    class="nav-item"
+                    :class="{ active: isActive('/dashboard') }"
+                    @click="closeSidebar"
+                >
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="2" />
+                        <rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="2" />
+                        <rect x="3" y="14" width="7" height="7" stroke="currentColor" stroke-width="2" />
+                        <rect x="14" y="14" width="7" height="7" stroke="currentColor" stroke-width="2" />
                     </svg>
                     Dashboard
                 </Link>
 
-                <Link href="/profile" class="sl-nav-item" :class="{ active: isActive('/profile') }">
-                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                        <circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M3 17c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <Link
+                    href="/profile"
+                    class="nav-item"
+                    :class="{ active: isActive('/profile') }"
+                    @click="closeSidebar"
+                >
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" />
+                        <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                     </svg>
                     Profil Mahasiswa
                 </Link>
 
-                <Link href="/pengumuman" class="sl-nav-item" :class="{ active: isActive('/pengumuman') }">
-                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                        <path d="M4 4h12a1 1 0 011 1v8a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M7 8h6M7 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <Link
+                    href="/pengumuman"
+                    class="nav-item"
+                    :class="{ active: isActive('/pengumuman') }"
+                    @click="closeSidebar"
+                >
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M4 5h16v13H8l-4 3V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                        <path d="M8 10h8M8 14h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                     </svg>
                     Pengumuman
                 </Link>
 
-                <Link href="/materi" class="sl-nav-item" :class="{ active: isActive('/materi') }">
-                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                        <path d="M4 3h8l4 4v10a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M12 3v4h4M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <Link
+                    href="/materi"
+                    class="nav-item"
+                    :class="{ active: isActive('/materi') }"
+                    @click="closeSidebar"
+                >
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M5 3h10l4 4v14H5V3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                        <path d="M15 3v5h4M9 12h6M9 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                     </svg>
                     Materi Kuliah
                 </Link>
 
-                <Link href="/events" class="sl-nav-item" :class="{ active: isActive('/events') }">
-                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                        <rect x="2" y="4" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M6 2v4M14 2v4M2 9h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <Link
+                    href="/events"
+                    class="nav-item"
+                    :class="{ active: isActive('/events') }"
+                    @click="closeSidebar"
+                >
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2" />
+                        <path d="M8 3v5M16 3v5M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                     </svg>
                     Event Kampus
                 </Link>
 
-                <Link href="/drive" class="sl-nav-item" :class="{ active: isActive('/drive') }">
-                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                        <path d="M2.5 6a2 2 0 012-2h4l2 2H16a2 2 0 012 2v7.5a2 2 0 01-2 2H4.5a2 2 0 01-2-2V6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <Link
+                    href="/drive"
+                    class="nav-item"
+                    :class="{ active: isActive('/drive') }"
+                    @click="closeSidebar"
+                >
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10H3V7Z"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linejoin="round"
+                        />
                     </svg>
                     Drive
                 </Link>
 
-                <Link href="/chat" class="sl-nav-item" :class="{ active: isActive('/chat') }">
-    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-        <path
-            d="M4 4.5h12a2 2 0 012 2v7a2 2 0 01-2 2H9l-4 2v-2H4a2 2 0 01-2-2v-7a2 2 0 012-2z"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linejoin="round"
-        />
-        <path
-            d="M6.5 9h7M6.5 12h4.5"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-        />
-    </svg>
-    Chatbot
-</Link>
-
+                <Link
+                    href="/chat"
+                    class="nav-item"
+                    :class="{ active: isActive('/chat') }"
+                    @click="closeSidebar"
+                >
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M4 4h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 3v-3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linejoin="round"
+                        />
+                        <path d="M8 10h8M8 14h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    Chatbot
+                </Link>
             </nav>
 
-            <!-- Footer -->
-            <div class="sl-sidebar-footer">
-                <a href="#" class="sl-footer-link">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M10 9v5M10 7h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <!-- FOOTER -->
+            <div class="sidebar-footer">
+                <a href="#" class="footer-link" @click.prevent="closeSidebar">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+                        <path d="M12 11v6M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                     </svg>
                     Help Center
                 </a>
-                <button @click="logout" class="sl-footer-link sl-logout-btn">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                        <path d="M13 15l4-5-4-5M17 10H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M7 3H4a1 1 0 00-1 1v12a1 1 0 001 1h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+
+                <button
+                    type="button"
+                    class="footer-link logout-button"
+                    @click="logout"
+                >
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" />
+                        <path d="m16 17 5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                     Logout
                 </button>
             </div>
         </aside>
 
-        <!-- ── MAIN ── -->
-        <div class="sl-main">
-
-            <!-- Topbar -->
-            <header class="sl-topbar">
-                <div class="sl-search">
-                    <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
-                        <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- MAIN -->
+        <div class="student-main">
+            <!-- TOPBAR -->
+            <header class="student-topbar">
+                <button
+                    type="button"
+                    class="mobile-menu-button"
+                    aria-label="Buka menu"
+                    :aria-expanded="sidebarOpen"
+                    @click="openSidebar"
+                >
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                     </svg>
-                    <input type="text" placeholder="Cari " />
+                </button>
+
+                <div class="student-search">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+                        <path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+
+                    <input type="text" placeholder="Cari" />
                 </div>
-                <div class="sl-topbar-right">
-                    <button class="sl-icon-btn" title="Notifikasi">
-                        <svg width="17" height="17" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 2a6 6 0 016 6c0 3.5 1 5 1 5H3s1-1.5 1-5a6 6 0 016-6z" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M8.5 16.5a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.5"/>
+
+                <div class="topbar-right">
+                    <button type="button" class="icon-button" title="Notifikasi">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M18 9a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8Z"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linejoin="round"
+                            />
+                            <path d="M14 21a2 2 0 0 1-4 0" stroke="currentColor" stroke-width="2" />
                         </svg>
                     </button>
-                    <button class="sl-icon-btn" title="Pengaturan">
-                        <svg width="17" height="17" viewBox="0 0 20 20" fill="none">
-                            <circle cx="10" cy="10" r="2" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+
+                    <button type="button" class="icon-button settings-button" title="Pengaturan">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" />
+                            <path
+                                d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                            />
                         </svg>
                     </button>
-                    <div class="sl-user-pill">
-                        <div class="sl-user-avatar">
-                            <img v-if="avatarUrl" :src="avatarUrl" :alt="displayName" />
+
+                    <div class="user-pill">
+                        <div class="user-avatar">
+                            <img
+                                v-if="avatarUrl"
+                                :src="avatarUrl"
+                                :alt="displayName"
+                            />
                             <span v-else>{{ initials }}</span>
                         </div>
-                        <div class="sl-user-info">
-                            <p class="sl-user-name">{{ displayName }}</p>
-                            <p class="sl-user-nim">{{ displayNim }}</p>
+
+                        <div class="user-meta">
+                            <p class="user-name">{{ displayName }}</p>
+                            <p class="user-nim">{{ displayNim }}</p>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <!-- Content -->
-            <main class="sl-content">
-                <div v-if="page.props.flash?.success" class="sl-flash">
-                    {{ page.props.flash.success }}
+            <!-- CONTENT -->
+            <main class="student-content">
+                <div v-if="flash.success" class="student-flash">
+                    {{ flash.success }}
                 </div>
+
                 <slot />
             </main>
         </div>
     </div>
 </template>
 
+<style scoped>
+.student-shell {
+    --primary: #0f9488;
+    --primary-dark: #0f766e;
+    --primary-soft: #ecfdf8;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    display: flex;
+    min-height: 100vh;
+    background: #f5f8fc;
+    color: var(--text);
+}
+
+.student-sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    width: 210px;
+    height: 100vh;
+    border-right: 1px solid var(--border);
+    background: #ffffff;
+}
+
+.sidebar-close,
+.mobile-menu-button {
+    display: none;
+}
+
+.student-brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    height: 70px;
+    padding: 0 17px;
+    border-bottom: 1px solid var(--border);
+}
+
+.brand-icon {
+    display: grid;
+    place-items: center;
+    width: 35px;
+    height: 35px;
+    border-radius: 10px;
+    background: var(--primary);
+    color: #ffffff;
+}
+
+.brand-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.brand-name {
+    margin: 0;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 750;
+}
+
+.brand-subtitle {
+    margin: 2px 0 0;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+.student-nav {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 5px;
+    padding: 18px 10px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    color: #526780;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: 0.18s ease;
+}
+
+.nav-item svg {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+}
+
+.nav-item:hover {
+    background: #f8fafc;
+    color: var(--text);
+}
+
+.nav-item.active {
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-weight: 700;
+}
+
+.sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 13px 10px;
+    border-top: 1px solid var(--border);
+}
+
+.footer-link {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: #526780;
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.footer-link:hover {
+    background: #f8fafc;
+    color: var(--text);
+}
+
+.footer-link svg {
+    width: 16px;
+    height: 16px;
+}
+
+.student-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.student-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 62px;
+    padding: 0 26px;
+    border-bottom: 1px solid var(--border);
+    background: #ffffff;
+}
+
+.student-search {
+    position: relative;
+    width: 230px;
+}
+
+.student-search svg {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    width: 15px;
+    height: 15px;
+    color: #94a3b8;
+    transform: translateY(-50%);
+}
+
+.student-search input {
+    width: 100%;
+    padding: 10px 12px 10px 35px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #f8fafc;
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.student-search input:focus {
+    border-color: #99f6e4;
+    background: #ffffff;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.icon-button {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #ffffff;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.icon-button:hover {
+    background: #f8fafc;
+    color: var(--primary-dark);
+}
+
+.icon-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.user-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 4px 11px 4px 5px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: #ffffff;
+}
+
+.user-avatar {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #ccfbf1;
+    color: #0f766e;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-name {
+    margin: 0;
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.user-nim {
+    margin: 1px 0 0;
+    color: #94a3b8;
+    font-size: 10px;
+}
+
+.student-content {
+    flex: 1;
+    padding: 27px 30px;
+}
+
+.student-flash {
+    margin-bottom: 17px;
+    padding: 12px 14px;
+    border: 1px solid #a7f3d0;
+    border-radius: 11px;
+    background: #ecfdf5;
+    color: #047857;
+    font-size: 13px;
+}
+
+.student-overlay {
+    display: none;
+}
+
+.drawer-fade-enter-active,
+.drawer-fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.drawer-fade-enter-from,
+.drawer-fade-leave-to {
+    opacity: 0;
+}
+
+@media (max-width: 900px) {
+    .student-shell {
+        display: block;
+    }
+
+    .student-sidebar {
+        position: fixed;
+        z-index: 1000;
+        top: 0;
+        left: 0;
+        width: 270px;
+        height: 100vh;
+        transform: translateX(-104%);
+        transition: transform 0.25s ease;
+        box-shadow: none;
+    }
+
+    .student-sidebar.open {
+        transform: translateX(0);
+        box-shadow: 16px 0 42px rgba(15, 23, 42, 0.17);
+    }
+
+    .student-overlay {
+        position: fixed;
+        z-index: 999;
+        inset: 0;
+        display: block;
+        background: rgba(15, 23, 42, 0.42);
+        backdrop-filter: blur(2px);
+    }
+
+    .sidebar-close {
+        position: absolute;
+        top: 17px;
+        right: 13px;
+        display: grid;
+        place-items: center;
+        width: 35px;
+        height: 35px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        background: #ffffff;
+        color: #475569;
+        cursor: pointer;
+    }
+
+    .sidebar-close svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .student-brand {
+        padding-right: 60px;
+    }
+
+    .student-main {
+        width: 100%;
+    }
+
+    .student-topbar {
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 0 14px;
+    }
+
+    .mobile-menu-button {
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        width: 39px;
+        height: 39px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #ffffff;
+        color: #334155;
+        cursor: pointer;
+    }
+
+    .mobile-menu-button svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .student-search {
+        flex: 1;
+        width: auto;
+        min-width: 0;
+    }
+
+    .topbar-right {
+        margin-left: auto;
+    }
+
+    .student-content {
+        padding: 20px 16px;
+    }
+}
+
+@media (max-width: 580px) {
+    .student-topbar {
+        gap: 8px;
+        padding: 0 10px;
+    }
+
+    .mobile-menu-button {
+        width: 37px;
+        height: 37px;
+    }
+
+    .student-search input::placeholder {
+        color: transparent;
+    }
+
+    .settings-button {
+        display: none;
+    }
+
+    .user-pill {
+        padding: 4px;
+    }
+
+    .user-meta {
+        display: none;
+    }
+
+    .student-content {
+        padding: 18px 12px;
+    }
+}
+</style>
