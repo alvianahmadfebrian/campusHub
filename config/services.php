@@ -41,6 +41,7 @@ return [
                 'profile' => env('SUPABASE_BUCKET_PROFILE', 'profile-photos'),
                 'materi' => env('SUPABASE_BUCKET_MATERI', 'materi-files'),
                 'event' => env('SUPABASE_BUCKET_EVENT', 'event-images'),
+                'drive' => env('SUPABASE_BUCKET_DRIVE', 'drive-files'),
             ],
         ],
     ],

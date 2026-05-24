@@ -1,6 +1,6 @@
 <script setup>
 import { Link, usePage, router } from '@inertiajs/vue3'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
 const page = usePage()
 const user = computed(() => page.props.auth?.user || null)
@@ -18,7 +18,10 @@ const initials    = computed(() => {
 })
 
 function logout() { router.post('/logout') }
-function isActive(path) { return page.url === path || page.url.startsWith(`${path}?`) }
+function isActive(path) {
+    const currentPath = page.url.split('?')[0]
+    return currentPath === path || currentPath.startsWith(`${path}/`)
+}
 </script>
 
 <template>
@@ -83,6 +86,14 @@ function isActive(path) { return page.url === path || page.url.startsWith(`${pat
                     </svg>
                     Event Kampus
                 </Link>
+
+                <Link href="/drive" class="sl-nav-item" :class="{ active: isActive('/drive') }">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                        <path d="M2.5 6a2 2 0 012-2h4l2 2H16a2 2 0 012 2v7.5a2 2 0 01-2 2H4.5a2 2 0 01-2-2V6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    </svg>
+                    Drive
+                </Link>
+
             </nav>
 
             <!-- Footer -->

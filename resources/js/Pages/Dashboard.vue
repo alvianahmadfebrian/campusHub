@@ -45,7 +45,10 @@ function logout() {
     router.post('/logout')
 }
 
-const isActive = (path) => page.url === path || page.url.startsWith(path + '?')
+const isActive = (path) => {
+    const currentPath = page.url.split('?')[0]
+    return currentPath === path || currentPath.startsWith(`${path}/`)
+}
 </script>
 
 <template>
@@ -104,6 +107,12 @@ const isActive = (path) => page.url === path || page.url.startsWith(path + '?')
                         <path d="M6 2v4M14 2v4M2 9h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                     Event Kampus
+                </Link>
+                <Link href="/drive" class="db-nav-item" :class="{ active: isActive('/drive') }">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                        <path d="M2.5 6a2 2 0 012-2h4l2 2H16a2 2 0 012 2v7.5a2 2 0 01-2 2H4.5a2 2 0 01-2-2V6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    </svg>
+                    Drive
                 </Link>
             </nav>
 

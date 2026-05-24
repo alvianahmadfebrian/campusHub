@@ -1,0 +1,39 @@
+PATCH MODUL CAMPUSHUB DRIVE
+===========================
+
+File tambahan:
+- app/Http/Controllers/DriveController.php
+- resources/js/Pages/Drive/Index.vue
+- resources/js/Pages/Drive/PublicFolder.vue
+- database/sql/upgrade_drive.sql
+
+File yang harus ditimpa/replace:
+- app/Services/SupabaseStorage.php
+- config/services.php
+- routes/web.php
+- resources/js/Layouts/AppLayout.vue
+- resources/css/app.css
+- .env.example (opsional, hanya template konfigurasi)
+- database/sql/campushub_supabase_schema.sql (untuk instalasi database baru)
+
+LANGKAH PASANG
+1. Backup folder project dan file .env.
+2. Copy seluruh isi folder patch ke root project C:\laragon\www\campushub lalu pilih replace file.
+3. Buka .env milikmu dan tambahkan:
+   SUPABASE_BUCKET_DRIVE=drive-files
+4. Untuk database yang SUDAH ADA, jalankan hanya:
+   database/sql/upgrade_drive.sql
+   melalui Supabase SQL Editor.
+5. Di terminal project jalankan:
+   php artisan optimize:clear
+   npm run dev
+   php artisan serve
+6. Setelah login, buka:
+   http://127.0.0.1:8000/drive
+
+CATATAN AKSES PUBLIK
+- File dan folder dibuat private secara default.
+- Link publik file: /share/file/{token}
+- Link publik folder: /share/folder/{token}
+- Folder publik membuat isi turunannya dapat dibuka dari link folder tersebut.
+- Bucket Supabase drive-files harus tetap private.
