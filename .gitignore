@@ -25,3 +25,9 @@ Thumbs.db
 
 # Jangan commit file berisi credential lokal
 /seeds/env_campushub
+
+# Local secrets
+.env
+.env.*
+!.env.example
+seeds/env_campushub

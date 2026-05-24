@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminPageController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
@@ -12,11 +13,6 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Halaman Awal
-|--------------------------------------------------------------------------
-*/
 Route::get('/', function () {
     $userId = session()->get('supabase_user.id');
 
@@ -33,11 +29,6 @@ Route::get('/', function () {
         : redirect()->route('dashboard');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Authentication
-|--------------------------------------------------------------------------
-*/
 Route::middleware('guest.supabase')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])
         ->name('login');
@@ -56,11 +47,6 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('supabase.auth')
     ->name('logout');
 
-/*
-|--------------------------------------------------------------------------
-| Public Share Drive
-|--------------------------------------------------------------------------
-*/
 Route::get('/share/folder/{token}/file/{fileId}', [DriveController::class, 'publicFolderFile'])
     ->name('share.folder.file');
 
@@ -70,36 +56,16 @@ Route::get('/share/folder/{token}/{folderId?}', [DriveController::class, 'public
 Route::get('/share/file/{token}', [DriveController::class, 'publicFile'])
     ->name('share.file');
 
-/*
-|--------------------------------------------------------------------------
-| Halaman User Login
-|--------------------------------------------------------------------------
-*/
 Route::middleware('supabase.auth')->group(function () {
-    /*
-    |--------------------------------------------------------------------------
-    | Dashboard
-    |--------------------------------------------------------------------------
-    */
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Profile
-    |--------------------------------------------------------------------------
-    */
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
 
     Route::post('/profile', [ProfileController::class, 'update'])
         ->name('profile.update');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Akademik
-    |--------------------------------------------------------------------------
-    */
     Route::get('/pengumuman', [PengumumanController::class, 'index'])
         ->name('pengumuman.index');
 
@@ -109,11 +75,6 @@ Route::middleware('supabase.auth')->group(function () {
     Route::get('/events', [EventController::class, 'index'])
         ->name('events.index');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Drive
-    |--------------------------------------------------------------------------
-    */
     Route::get('/drive/{folderId?}', [DriveController::class, 'index'])
         ->name('drive.index');
 
@@ -138,13 +99,6 @@ Route::middleware('supabase.auth')->group(function () {
     Route::get('/drive/files/{id}/download', [DriveController::class, 'downloadFile'])
         ->name('drive.files.download');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Chatbot CampusHub
-    |--------------------------------------------------------------------------
-    | Semua route chatbot wajib login.
-    | Dokumen chatbot otomatis difilter berdasarkan akun login.
-    */
     Route::get('/chat', [ChatController::class, 'index'])
         ->name('chat.index');
 
@@ -162,17 +116,48 @@ Route::middleware('supabase.auth')->group(function () {
         ->name('chat.documents.destroy');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Admin
-|--------------------------------------------------------------------------
-*/
 Route::prefix('admin')
     ->name('admin.')
     ->middleware(['supabase.auth', 'supabase.admin'])
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'admin'])
             ->name('dashboard');
+
+        Route::get('/akademik', [AdminPageController::class, 'akademik'])
+            ->name('akademik');
+
+        Route::get('/jadwal', [AdminPageController::class, 'jadwal'])
+            ->name('jadwal');
+
+        Route::get('/laporan', [AdminPageController::class, 'laporan'])
+            ->name('laporan');
+
+        Route::get('/pengaturan', [AdminPageController::class, 'pengaturan'])
+            ->name('pengaturan');
+
+        Route::patch('/pengaturan', [AdminPageController::class, 'updatePengaturan'])
+            ->name('pengaturan.update');
+
+        Route::get('/konten', [AdminPageController::class, 'konten'])
+            ->name('konten');
+
+        Route::patch('/konten/pengumuman/{id}', [AdminPageController::class, 'updateKontenPengumuman'])
+            ->name('konten.pengumuman.update');
+
+        Route::delete('/konten/pengumuman/{id}', [AdminPageController::class, 'destroyKontenPengumuman'])
+            ->name('konten.pengumuman.destroy');
+
+        Route::patch('/konten/materi/{id}', [AdminPageController::class, 'updateKontenMateri'])
+            ->name('konten.materi.update');
+
+        Route::delete('/konten/materi/{id}', [AdminPageController::class, 'destroyKontenMateri'])
+            ->name('konten.materi.destroy');
+
+        Route::patch('/konten/events/{id}', [AdminPageController::class, 'updateKontenEvent'])
+            ->name('konten.events.update');
+
+        Route::delete('/konten/events/{id}', [AdminPageController::class, 'destroyKontenEvent'])
+            ->name('konten.events.destroy');
 
         Route::post('/jurusan', [JurusanController::class, 'store'])
             ->name('jurusan.store');
@@ -188,4 +173,13 @@ Route::prefix('admin')
 
         Route::post('/events', [EventController::class, 'store'])
             ->name('events.store');
+
+        Route::post('/jadwal', [AdminPageController::class, 'storeJadwal'])
+            ->name('jadwal.store');
+
+        Route::patch('/jadwal/{id}', [AdminPageController::class, 'updateJadwal'])
+            ->name('jadwal.update');
+
+        Route::delete('/jadwal/{id}', [AdminPageController::class, 'destroyJadwal'])
+            ->name('jadwal.destroy');
     });
