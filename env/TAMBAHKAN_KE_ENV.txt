@@ -1,2 +1,0 @@
-# Tambahkan pada .env yang sudah kamu gunakan:
-SUPABASE_BUCKET_DRIVE=drive-files

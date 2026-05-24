@@ -47,6 +47,7 @@ function logout() {
 
 const isActive = (path) => {
     const currentPath = page.url.split('?')[0]
+
     return currentPath === path || currentPath.startsWith(`${path}/`)
 }
 </script>
@@ -114,6 +115,23 @@ const isActive = (path) => {
                     </svg>
                     Drive
                 </Link>
+                <Link href="/chat" class="db-nav-item" :class="{ active: isActive('/chat') }">
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+        <path
+            d="M4 4.5h12a2 2 0 012 2v7a2 2 0 01-2 2H9l-4 2v-2H4a2 2 0 01-2-2v-7a2 2 0 012-2z"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linejoin="round"
+        />
+        <path
+            d="M6.5 9h7M6.5 12h4.5"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+        />
+    </svg>
+    Chatbot
+</Link>
             </nav>
 
             <div class="db-sidebar-footer">
