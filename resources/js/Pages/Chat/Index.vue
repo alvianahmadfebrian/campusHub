@@ -1,7 +1,8 @@
 <script setup>
 import { Head, router, useForm } from '@inertiajs/vue3'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import AdminLayout from '@/Layouts/AdminLayout.vue'
 
 const props = defineProps({
     messages: {
@@ -29,14 +30,33 @@ const props = defineProps({
     },
 })
 
-const fileInput = ref(null)
+const CurrentLayout = computed(() => {
+    return props.scope.role === 'admin'
+        ? AdminLayout
+        : AppLayout
+})
 
-const suggestions = [
-    'Ada pengumuman terbaru untuk saya?',
-    'Materi apa yang tersedia untuk jurusan saya?',
-    'Event terdekat yang bisa saya ikuti?',
-    'File apa saja yang ada di Drive saya?',
-]
+const fileInput = ref(null)
+const threadRef = ref(null)
+const pendingUploadedDocument = ref(false)
+
+const suggestions = computed(() => {
+    if (props.scope.role === 'admin') {
+        return [
+            'Berapa jumlah mahasiswa yang terdaftar?',
+            'Ada pengumuman terbaru apa saja?',
+            'Event mendatang yang tersedia apa saja?',
+            'Bantu analisis dokumen yang saya upload.',
+        ]
+    }
+
+    return [
+        'Ada pengumuman terbaru untuk saya?',
+        'Materi apa yang tersedia untuk jurusan saya?',
+        'Event terdekat yang bisa saya ikuti?',
+        'File apa saja yang ada di Drive saya?',
+    ]
+})
 
 const form = useForm({
     message: '',
@@ -51,8 +71,6 @@ const activeDocument = computed(() => {
     return props.documents.find((document) => document.id === form.document_id) || null
 })
 
-const pendingUploadedDocument = ref(false)
-
 watch(
     () => props.documents.map((document) => document.id).join(','),
     () => {
@@ -64,6 +82,25 @@ watch(
         pendingUploadedDocument.value = false
     }
 )
+
+watch(
+    () => props.messages.length,
+    async () => {
+        await nextTick()
+        scrollToBottom()
+    },
+    {
+        immediate: true,
+    }
+)
+
+function scrollToBottom() {
+    if (!threadRef.value) {
+        return
+    }
+
+    threadRef.value.scrollTop = threadRef.value.scrollHeight
+}
 
 function useSuggestion(text) {
     form.message = text
@@ -173,13 +210,6 @@ function formatSize(bytes) {
     return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
 
-/*
-|--------------------------------------------------------------------------
-| Render Jawaban Markdown Menjadi Tampilan HTML Aman
-|--------------------------------------------------------------------------
-| Semua teks dari AI di-escape terlebih dahulu agar tidak dapat menyisipkan
-| HTML/script sembarangan.
-*/
 function escapeHtml(value) {
     return String(value ?? '')
         .replaceAll('&', '&amp;')
@@ -248,9 +278,6 @@ function renderAssistantMessage(content) {
             continue
         }
 
-        /*
-         * Markdown table
-         */
         if (
             trimmed.includes('|') &&
             lines[index + 1] &&
@@ -277,21 +304,15 @@ function renderAssistantMessage(content) {
                     <table class="chat-result-table">
                         <thead>
                             <tr>
-                                ${headers
-                                    .map((header) => `<th>${header}</th>`)
-                                    .join('')}
+                                ${headers.map((header) => `<th>${header}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody>
-                            ${rows
-                                .map((row) => `
-                                    <tr>
-                                        ${row
-                                            .map((cell) => `<td>${cell}</td>`)
-                                            .join('')}
-                                    </tr>
-                                `)
-                                .join('')}
+                            ${rows.map((row) => `
+                                <tr>
+                                    ${row.map((cell) => `<td>${cell}</td>`).join('')}
+                                </tr>
+                            `).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -300,9 +321,6 @@ function renderAssistantMessage(content) {
             continue
         }
 
-        /*
-         * Markdown heading
-         */
         const heading = trimmed.match(/^(#{1,3})\s+(.+)$/)
 
         if (heading) {
@@ -315,9 +333,6 @@ function renderAssistantMessage(content) {
             continue
         }
 
-        /*
-         * Bullet list
-         */
         if (/^[-*]\s+/.test(trimmed)) {
             flushParagraph()
 
@@ -341,9 +356,6 @@ function renderAssistantMessage(content) {
             continue
         }
 
-        /*
-         * Numbered list
-         */
         if (/^\d+\.\s+/.test(trimmed)) {
             flushParagraph()
 
@@ -380,15 +392,24 @@ function renderAssistantMessage(content) {
 <template>
     <Head title="Chatbot CampusHub" />
 
-    <AppLayout>
+    <component :is="CurrentLayout">
         <div class="chat-page">
-            <!-- HEADER -->
             <header class="chat-header">
                 <div>
                     <p class="chat-eyebrow">AI ASSISTANT</p>
-                    <h1 class="chat-title">Chatbot CampusHub</h1>
+
+                    <h1 class="chat-title">
+                        {{ scope.role === 'admin' ? 'Chatbot Admin CampusHub' : 'Chatbot CampusHub' }}
+                    </h1>
+
                     <p class="chat-subtitle">
-                        Tanya informasi akademik, Drive, atau lampirkan dokumen pribadi untuk dianalisis.
+                        <template v-if="scope.role === 'admin'">
+                            Tanya statistik akademik, konten kampus, atau lampirkan dokumen private milik admin.
+                        </template>
+
+                        <template v-else>
+                            Tanya informasi akademik, Drive, atau lampirkan dokumen pribadi untuk dianalisis.
+                        </template>
                     </p>
                 </div>
 
@@ -417,7 +438,6 @@ function renderAssistantMessage(content) {
                 </button>
             </header>
 
-            <!-- SECURITY INFO -->
             <section class="chat-security">
                 <div class="chat-security-icon">
                     <svg viewBox="0 0 24 24" fill="none">
@@ -440,7 +460,12 @@ function renderAssistantMessage(content) {
                 <div>
                     <strong>Akses aman untuk {{ scope.nama }}</strong>
 
-                    <p>
+                    <p v-if="scope.role === 'admin'">
+                        Chatbot memakai statistik umum dan konten akademik yang dapat diakses admin.
+                        Dokumen private mahasiswa lain dan Drive pribadi pengguna lain tidak diberikan ke chatbot.
+                    </p>
+
+                    <p v-else>
                         Chatbot hanya memakai data yang dapat dilihat akun login ini.
                         Jurusan: <b>{{ scope.jurusan }}</b> · Role: <b>{{ scope.role }}</b>.
                         Dokumen hanya dapat digunakan oleh akunmu sendiri.
@@ -448,10 +473,8 @@ function renderAssistantMessage(content) {
                 </div>
             </section>
 
-            <!-- CHAT AREA -->
             <section class="chat-shell">
-                <div class="chat-thread">
-                    <!-- EMPTY STATE -->
+                <div ref="threadRef" class="chat-thread">
                     <div v-if="messages.length === 0" class="chat-welcome">
                         <div class="chat-bot-avatar">
                             <svg viewBox="0 0 24 24" fill="none">
@@ -475,7 +498,8 @@ function renderAssistantMessage(content) {
                         <h2>Halo! Ada yang bisa saya bantu?</h2>
 
                         <p>
-                            Klik tombol <b>+</b> untuk melampirkan PDF atau dokumen, lalu langsung tanyakan isinya.
+                            Klik tombol <b>+</b> untuk melampirkan PDF atau dokumen,
+                            lalu langsung tanyakan isinya.
                         </p>
 
                         <div class="chat-suggestions">
@@ -490,7 +514,6 @@ function renderAssistantMessage(content) {
                         </div>
                     </div>
 
-                    <!-- MESSAGES -->
                     <article
                         v-for="message in messages"
                         :key="message.id"
@@ -498,7 +521,11 @@ function renderAssistantMessage(content) {
                         :class="message.role"
                     >
                         <div class="chat-avatar">
-                            <svg v-if="message.role === 'assistant'" viewBox="0 0 24 24" fill="none">
+                            <svg
+                                v-if="message.role === 'assistant'"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
                                 <path
                                     d="M12 3v3M8 3h8M5 9a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9Z"
                                     stroke="currentColor"
@@ -551,7 +578,6 @@ function renderAssistantMessage(content) {
                     </article>
                 </div>
 
-                <!-- COMPOSER -->
                 <form class="chat-composer" @submit.prevent="sendMessage">
                     <div v-if="form.errors.message" class="chat-error">
                         {{ form.errors.message }}
@@ -565,7 +591,6 @@ function renderAssistantMessage(content) {
                         {{ uploadForm.errors.file }}
                     </div>
 
-                    <!-- ATTACHED DOCUMENT CHIP -->
                     <div v-if="activeDocument" class="attached-document">
                         <div class="attached-document-icon">
                             <svg viewBox="0 0 24 24" fill="none">
@@ -586,10 +611,11 @@ function renderAssistantMessage(content) {
 
                         <div class="attached-document-info">
                             <strong>{{ activeDocument.nama_asli }}</strong>
+
                             <span>
                                 {{ activeDocument.extension.toUpperCase() }}
                                 · {{ formatSize(activeDocument.ukuran_bytes) }}
-                                · Akan digunakan untuk pertanyaan berikutnya
+                                · Digunakan satu kali untuk pertanyaan berikutnya
                             </span>
                         </div>
 
@@ -633,7 +659,6 @@ function renderAssistantMessage(content) {
                     </div>
 
                     <div class="composer-box">
-                        <!-- PLUS BUTTON -->
                         <button
                             type="button"
                             class="composer-plus"
@@ -641,7 +666,11 @@ function renderAssistantMessage(content) {
                             title="Lampirkan dokumen"
                             @click="openFilePicker"
                         >
-                            <svg v-if="!uploadForm.processing" viewBox="0 0 24 24" fill="none">
+                            <svg
+                                v-if="!uploadForm.processing"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
                                 <path
                                     d="M12 5v14M5 12h14"
                                     stroke="currentColor"
@@ -668,7 +697,6 @@ function renderAssistantMessage(content) {
                             @change="handleFileSelected"
                         />
 
-                        <!-- MESSAGE -->
                         <textarea
                             v-model="form.message"
                             class="chat-input"
@@ -680,7 +708,6 @@ function renderAssistantMessage(content) {
                             @keydown.enter.exact.prevent="sendMessage"
                         ></textarea>
 
-                        <!-- SEND -->
                         <button
                             class="chat-send"
                             type="submit"
@@ -710,7 +737,7 @@ function renderAssistantMessage(content) {
                 </form>
             </section>
         </div>
-    </AppLayout>
+    </component>
 </template>
 
 <style scoped>
