@@ -45,8 +45,8 @@ function submit() {
 
                 <div class="login-campus-img">
                     <img
-                        src="https://images.unsplash.com/photo-1562774053-701939374585?w=800&q=80"
-                        alt="Kampus"
+                        src="https://www.unpak.ac.id/images/gedung-unpak.jpg"
+                        alt="Unpak"
                     />
                     <div class="login-img-overlay"></div>
                 </div>
@@ -136,11 +136,6 @@ function submit() {
                         <Link href="/register">Daftar Akun Baru</Link>
                     </p>
                 </form>
-
-                <div class="lf-footer">
-                    <a href="#">Syarat &amp; Ketentuan</a>
-                    <a href="#">Pusat Bantuan</a>
-                </div>
             </div>
         </div>
     </div>
