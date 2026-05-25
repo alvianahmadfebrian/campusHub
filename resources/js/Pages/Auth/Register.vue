@@ -94,7 +94,7 @@ function submit() {
         <div class="reg-right">
             <div class="reg-form-wrap">
                 <div class="reg-form-header">
-    
+
 
     <h2>Buat Akun Mahasiswa</h2>
 </div>

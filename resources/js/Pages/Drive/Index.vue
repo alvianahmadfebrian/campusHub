@@ -1,34 +1,19 @@
 <script setup>
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
 
 const props = defineProps({
-    currentFolder: {
-        type: Object,
-        default: null,
-    },
-    breadcrumbs: {
-        type: Array,
-        default: () => [],
-    },
-    folders: {
-        type: Array,
-        default: () => [],
-    },
-    files: {
-        type: Array,
-        default: () => [],
-    },
-    limits: {
-        type: Object,
-        default: () => ({
-            maxUploadMb: 50,
-        }),
-    },
+    currentFolder: { type: Object, default: null },
+    breadcrumbs: { type: Array, default: () => [] },
+    folders: { type: Array, default: () => [] },
+    files: { type: Array, default: () => [] },
+    limits: { type: Object, default: () => ({ maxUploadMb: 50 }) },
 })
 
 const fileInput = ref(null)
+const showCreate = ref(false)
+const query = ref('')
 
 const createFolderForm = useForm({
     nama: '',
@@ -38,6 +23,18 @@ const createFolderForm = useForm({
 const uploadForm = useForm({
     folder_id: props.currentFolder?.id || null,
     file: null,
+})
+
+const filteredFolders = computed(() => {
+    const q = query.value.toLowerCase().trim()
+    if (!q) return props.folders
+    return props.folders.filter((folder) => folder.nama?.toLowerCase().includes(q))
+})
+
+const filteredFiles = computed(() => {
+    const q = query.value.toLowerCase().trim()
+    if (!q) return props.files
+    return props.files.filter((file) => file.nama_tampilan?.toLowerCase().includes(q))
 })
 
 watch(
@@ -54,12 +51,18 @@ function createFolder() {
         onSuccess: () => {
             createFolderForm.reset('nama')
             createFolderForm.parent_id = props.currentFolder?.id || null
+            showCreate.value = false
         },
     })
 }
 
+function openUploadPicker() {
+    fileInput.value?.click()
+}
+
 function handleFileChange(event) {
     uploadForm.file = event.target.files?.[0] || null
+    if (uploadForm.file) uploadFile()
 }
 
 function uploadFile() {
@@ -69,103 +72,43 @@ function uploadFile() {
         onSuccess: () => {
             uploadForm.reset('file')
             uploadForm.folder_id = props.currentFolder?.id || null
-
-            if (fileInput.value) {
-                fileInput.value.value = ''
-            }
+            if (fileInput.value) fileInput.value.value = ''
         },
     })
 }
 
 function renameFolder(folder) {
     const nama = window.prompt('Nama folder baru:', folder.nama)
-
-    if (!nama || nama.trim() === '' || nama.trim() === folder.nama) {
-        return
-    }
-
-    router.patch(
-        `/drive/folders/${folder.id}`,
-        {
-            nama: nama.trim(),
-        },
-        {
-            preserveScroll: true,
-        }
-    )
+    if (!nama || nama.trim() === '' || nama.trim() === folder.nama) return
+    router.patch(`/drive/folders/${folder.id}`, { nama: nama.trim() }, { preserveScroll: true })
 }
 
 function toggleFolder(folder) {
-    router.patch(
-        `/drive/folders/${folder.id}`,
-        {
-            is_public: !folder.is_public,
-        },
-        {
-            preserveScroll: true,
-        }
-    )
+    router.patch(`/drive/folders/${folder.id}`, { is_public: !folder.is_public }, { preserveScroll: true })
 }
 
 function deleteFolder(folder) {
-    const yakin = window.confirm(
-        `Hapus folder "${folder.nama}" beserta seluruh file dan subfolder di dalamnya?`
-    )
-
-    if (!yakin) {
-        return
-    }
-
+    if (!window.confirm(`Hapus folder "${folder.nama}" beserta seluruh file dan subfolder di dalamnya?`)) return
     router.delete(`/drive/folders/${folder.id}`)
 }
 
 function renameFile(file) {
     const nama = window.prompt('Nama file baru:', file.nama_tampilan)
-
-    if (!nama || nama.trim() === '' || nama.trim() === file.nama_tampilan) {
-        return
-    }
-
-    router.patch(
-        `/drive/files/${file.id}`,
-        {
-            nama_tampilan: nama.trim(),
-        },
-        {
-            preserveScroll: true,
-        }
-    )
+    if (!nama || nama.trim() === '' || nama.trim() === file.nama_tampilan) return
+    router.patch(`/drive/files/${file.id}`, { nama_tampilan: nama.trim() }, { preserveScroll: true })
 }
 
 function toggleFile(file) {
-    router.patch(
-        `/drive/files/${file.id}`,
-        {
-            is_public: !file.is_public,
-        },
-        {
-            preserveScroll: true,
-        }
-    )
+    router.patch(`/drive/files/${file.id}`, { is_public: !file.is_public }, { preserveScroll: true })
 }
 
 function deleteFile(file) {
-    const yakin = window.confirm(`Hapus file "${file.nama_tampilan}"?`)
-
-    if (!yakin) {
-        return
-    }
-
-    router.delete(`/drive/files/${file.id}`, {
-        preserveScroll: true,
-    })
+    if (!window.confirm(`Hapus file "${file.nama_tampilan}"?`)) return
+    router.delete(`/drive/files/${file.id}`, { preserveScroll: true })
 }
 
 async function copyLink(url) {
-    if (!url) {
-        return
-    }
-
+    if (!url) return
     try {
         await navigator.clipboard.writeText(url)
         window.alert('Link publik berhasil disalin.')
@@ -175,17 +118,23 @@ async function copyLink(url) {
 }
 
 function ukuran(bytes) {
-    if (!bytes) {
-        return '0 KB'
-    }
-
+    if (!bytes) return '—'
     const units = ['B', 'KB', 'MB', 'GB']
-    const index = Math.min(
-        Math.floor(Math.log(bytes) / Math.log(1024)),
-        units.length - 1
-    )
-
+    const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1)
     return `${(bytes / Math.pow(1024, index)).toFixed(index === 0 ? 0 : 1)} ${units[index]}`
+}
+
+function tanggal(item) {
+    return item.updated_at || item.created_at || '1 Jun 2025'
+}
+
+function fileType(name) {
+    const ext = name?.split('.').pop()?.toLowerCase()
+    if (ext === 'pdf') return 'pdf'
+    if (['doc', 'docx'].includes(ext)) return 'doc'
+    if (['xls', 'xlsx', 'csv'].includes(ext)) return 'sheet'
+    if (['jpg', 'jpeg', 'png', 'webp'].includes(ext)) return 'img'
+    return 'file'
 }
 </script>
 
@@ -194,1003 +143,633 @@ function ukuran(bytes) {
 
     <AppLayout>
         <div class="drive-page">
-            <!-- HEADER -->
-            <header class="drive-header">
-                <div>
-                    <p class="drive-eyebrow">Cloud Storage</p>
-                    <h1 class="drive-title">Drive Saya</h1>
-                    <p class="drive-subtitle">
-                        Buat folder, simpan file, dan bagikan link publik tanpa membuka akses file private.
-                    </p>
+            <header class="drive-topbar">
+                <div class="drive-search">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="m21 21-4.2-4.2M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    <input v-model="query" type="search" placeholder="Telusuri di Drive" />
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M8 5v4M16 15v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 </div>
             </header>
 
-            <!-- BREADCRUMB -->
-            <nav class="drive-breadcrumb" aria-label="Breadcrumb">
-                <Link href="/drive" class="drive-breadcrumb-link">
-                    Drive Saya
-                </Link>
-
-                <template v-for="crumb in breadcrumbs" :key="crumb.url">
-                    <span class="drive-breadcrumb-divider">/</span>
-                    <Link :href="crumb.url" class="drive-breadcrumb-link">
-                        {{ crumb.nama }}
-                    </Link>
-                </template>
-            </nav>
-
-            <!-- ERROR -->
-            <div v-if="$page.props.errors?.drive" class="drive-alert-error">
-                {{ $page.props.errors.drive }}
-            </div>
-
-            <!-- FORM CREATE & UPLOAD -->
-            <div class="drive-tools-grid">
-                <!-- CREATE FOLDER -->
-                <section class="drive-card">
-                    <div class="drive-card-heading">
-                        <div class="drive-heading-icon folder">
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <path
-                                    d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-9Z"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linejoin="round"
-                                />
-                            </svg>
-                        </div>
-                        <h2>Buat Folder</h2>
+            <main class="drive-shell">
+                <section class="drive-toolbar">
+                    <div>
+                        <h1>Drive Saya <span>⌄</span></h1>
+                        <nav class="breadcrumb">
+                            <Link href="/drive">Drive Saya</Link>
+                            <template v-for="crumb in breadcrumbs" :key="crumb.url">
+                                <span>›</span>
+                                <Link :href="crumb.url">{{ crumb.nama }}</Link>
+                            </template>
+                        </nav>
                     </div>
 
+                    <div class="view-switch">
+                        <button class="active" type="button" title="List view">☰</button>
+                        <button type="button" title="Grid view">▦</button>
+                        <button type="button" title="Info">ⓘ</button>
+                    </div>
+                </section>
+
+                <section class="action-row">
+
+                    <div class="primary-actions">
+                        <button class="new-btn" type="button" @click="showCreate = !showCreate">
+                            <span>＋</span> Baru <small>⌄</small>
+                        </button>
+                        <button class="upload-btn" type="button" :disabled="uploadForm.processing" @click="openUploadPicker">
+                            <span>⇧</span> {{ uploadForm.processing ? 'Mengunggah...' : 'Upload' }}
+                        </button>
+                    </div>
+                </section>
+
+                <input id="drive-file" ref="fileInput" class="file-picker" type="file" @change="handleFileChange" />
+
+                <div v-if="$page.props.errors?.drive" class="error-box">{{ $page.props.errors.drive }}</div>
+                <div v-if="uploadForm.errors.file" class="error-box">{{ uploadForm.errors.file }}</div>
+
+                <section v-if="showCreate" class="create-folder-card">
                     <form @submit.prevent="createFolder">
-                        <div class="drive-form-row">
-                            <label class="drive-label" for="folder-name">
-                                Nama Folder
-                            </label>
-
-                            <input
-                                id="folder-name"
-                                v-model="createFolderForm.nama"
-                                class="drive-input"
-                                type="text"
-                                placeholder="Contoh: Modul Semester 2"
-                                required
-                            />
-
-                            <div v-if="createFolderForm.errors.nama" class="drive-error">
-                                {{ createFolderForm.errors.nama }}
-                            </div>
-                        </div>
-
-                        <button
-                            class="drive-primary-button"
-                            type="submit"
-                            :disabled="createFolderForm.processing"
-                        >
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <path
-                                    d="M12 5v14M5 12h14"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                />
-                            </svg>
-
+                        <input v-model="createFolderForm.nama" type="text" placeholder="Nama folder baru" required />
+                        <button type="submit" :disabled="createFolderForm.processing">
                             {{ createFolderForm.processing ? 'Membuat...' : 'Buat Folder' }}
                         </button>
                     </form>
+                    <small v-if="createFolderForm.errors.nama">{{ createFolderForm.errors.nama }}</small>
                 </section>
 
-                <!-- UPLOAD FILE -->
-                <section class="drive-card">
-                    <div class="drive-card-heading">
-                        <div class="drive-heading-icon file">
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <path
-                                    d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linejoin="round"
-                                />
-                                <path
-                                    d="M14 3v5h5"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linejoin="round"
-                                />
-                            </svg>
-                        </div>
-                        <h2>Upload File</h2>
+                <section class="drive-table">
+                    <div class="table-head">
+                        <div>Nama <span class="sort-arrow">↑</span></div>
+                        <div>Pemilik</div>
+                        <div>Terakhir diubah</div>
+                        <div>Ukuran</div>
+                        <div>⋮</div>
                     </div>
 
-                    <form @submit.prevent="uploadFile">
-                        <div class="drive-form-row">
-                            <label class="drive-label" for="drive-file">
-                                Pilih File · Maks. {{ limits.maxUploadMb }} MB
-                            </label>
-
-                            <input
-                                id="drive-file"
-                                ref="fileInput"
-                                class="drive-input drive-file-input"
-                                type="file"
-                                required
-                                @change="handleFileChange"
-                            />
-
-                            <div v-if="uploadForm.errors.file" class="drive-error">
-                                {{ uploadForm.errors.file }}
-                            </div>
+                    <Link v-for="folder in filteredFolders" :key="`folder-${folder.id}`" :href="folder.open_url" class="table-row">
+                        <div class="name-cell">
+                            <span class="folder-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 4l2 2h8a2 2 0 0 1 2 2v10.2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6Z"/></svg></span>
+                            <strong>{{ folder.nama }}</strong>
                         </div>
+                        <div class="owner"><span class="avatar-mini">E</span> saya</div>
+                        <div>{{ tanggal(folder) }}</div>
+                        <div>—</div>
+                        <div class="row-actions" @click.prevent>
+                            <button type="button" @click="toggleFolder(folder)">{{ folder.is_public ? 'Private' : 'Public' }}</button>
+                            <button v-if="folder.share_url" type="button" @click="copyLink(folder.share_url)">Link</button>
+                            <button type="button" @click="renameFolder(folder)">Rename</button>
+                            <button type="button" @click="deleteFolder(folder)">Hapus</button>
+                            <span>⋮</span>
+                        </div>
+                    </Link>
 
-                        <button
-                            class="drive-primary-button"
-                            type="submit"
-                            :disabled="uploadForm.processing"
-                        >
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <path
-                                    d="M12 16V4M12 4l-4 4M12 4l4 4"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
-                                <path
-                                    d="M4 17v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                />
-                            </svg>
+                    <div v-for="file in filteredFiles" :key="`file-${file.id}`" class="table-row">
+                        <div class="name-cell">
+                            <span class="file-icon" :class="fileType(file.nama_tampilan)">{{ fileType(file.nama_tampilan) === 'pdf' ? 'PDF' : '▤' }}</span>
+                            <strong>{{ file.nama_tampilan }}</strong>
+                        </div>
+                        <div class="owner"><span class="avatar-mini">E</span> saya</div>
+                        <div>{{ tanggal(file) }}</div>
+                        <div>{{ ukuran(file.ukuran_bytes) }}</div>
+                        <div class="row-actions">
+                            <a :href="file.download_url">Download</a>
+                            <button type="button" @click="toggleFile(file)">{{ file.is_public ? 'Private' : 'Public' }}</button>
+                            <button v-if="file.share_url" type="button" @click="copyLink(file.share_url)">Link</button>
+                            <button type="button" @click="renameFile(file)">Rename</button>
+                            <button type="button" @click="deleteFile(file)">Hapus</button>
+                            <span>⋮</span>
+                        </div>
+                    </div>
 
-                            {{ uploadForm.processing ? 'Mengunggah...' : 'Upload File' }}
-                        </button>
-                    </form>
+                    <div v-if="filteredFolders.length === 0 && filteredFiles.length === 0" class="empty-state">
+                        <div class="empty-icon">☁</div>
+                        <h2>Drive masih kosong</h2>
+                        <p>Klik <b>+ Baru</b> untuk membuat folder atau <b>Upload</b> untuk mengunggah file.</p>
+                    </div>
                 </section>
-            </div>
-
-            <!-- CURRENT FOLDER SHARE SETTINGS -->
-            <section v-if="currentFolder" class="drive-card drive-current-folder">
-                <div class="drive-current-main">
-                    <div class="drive-item-icon folder">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-9Z"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linejoin="round"
-                            />
-                        </svg>
-                    </div>
-
-                    <div>
-                        <h2 class="drive-current-title">
-                            {{ currentFolder.nama }}
-                        </h2>
-
-                        <p class="drive-item-meta">
-                            {{ currentFolder.is_public
-                                ? 'Publik · Siapa pun dengan link dapat membuka folder ini'
-                                : 'Private · Hanya kamu yang dapat membuka folder ini' }}
-                        </p>
-                    </div>
-                </div>
-
-                <div class="drive-action-group">
-                    <span
-                        class="drive-status"
-                        :class="{ public: currentFolder.is_public }"
-                    >
-                        {{ currentFolder.is_public ? 'Public' : 'Private' }}
-                    </span>
-
-                    <button
-                        type="button"
-                        class="drive-icon-button"
-                        :title="currentFolder.is_public ? 'Jadikan private' : 'Jadikan public'"
-                        :aria-label="currentFolder.is_public ? 'Jadikan private' : 'Jadikan public'"
-                        @click="toggleFolder(currentFolder)"
-                    >
-                        <svg v-if="currentFolder.is_public" viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M12 16c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5Z"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <path
-                                d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linejoin="round"
-                            />
-                        </svg>
-
-                        <svg v-else viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M7 11V8a5 5 0 0 1 10 0v3"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                            <rect
-                                x="5"
-                                y="11"
-                                width="14"
-                                height="10"
-                                rx="2"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                        </svg>
-                    </button>
-
-                    <button
-                        v-if="currentFolder.share_url"
-                        type="button"
-                        class="drive-icon-button"
-                        title="Salin link publik folder"
-                        aria-label="Salin link publik folder"
-                        @click="copyLink(currentFolder.share_url)"
-                    >
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 4"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
-                            <path
-                                d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L13 20"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
-                        </svg>
-                    </button>
-                </div>
-            </section>
-
-            <!-- FOLDERS -->
-            <section class="drive-card">
-                <div class="drive-section-heading">
-                    <h2>Folder</h2>
-                    <span>{{ folders.length }} folder</span>
-                </div>
-
-                <p v-if="folders.length === 0" class="drive-empty">
-                    Belum ada folder di lokasi ini.
-                </p>
-
-                <div v-else class="drive-list">
-                    <article
-                        v-for="folder in folders"
-                        :key="folder.id"
-                        class="drive-item"
-                    >
-                        <Link :href="folder.open_url" class="drive-item-main">
-                            <div class="drive-item-icon folder">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path
-                                        d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-9Z"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-                            </div>
-
-                            <div class="drive-item-text">
-                                <strong>{{ folder.nama }}</strong>
-                                <span>{{ folder.is_public ? 'Public' : 'Private' }}</span>
-                            </div>
-                        </Link>
-
-                        <div class="drive-action-group">
-                            <!-- PUBLIC / PRIVATE -->
-                            <button
-                                type="button"
-                                class="drive-icon-button"
-                                :title="folder.is_public ? 'Jadikan private' : 'Jadikan public'"
-                                :aria-label="folder.is_public ? 'Jadikan private' : 'Jadikan public'"
-                                @click="toggleFolder(folder)"
-                            >
-                                <svg v-if="folder.is_public" viewBox="0 0 24 24" fill="none">
-                                    <path
-                                        d="M12 16c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5Z"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                    />
-                                    <path
-                                        d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-
-                                <svg v-else viewBox="0 0 24 24" fill="none">
-                                    <path
-                                        d="M7 11V8a5 5 0 0 1 10 0v3"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linecap="round"
-                                    />
-                                    <rect
-                                        x="5"
-                                        y="11"
-                                        width="14"
-                                        height="10"
-                                        rx="2"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                    />
-                                </svg>
-                            </button>
-
-                            <!-- LINK -->
-                            <button
-                                v-if="folder.share_url"
-                                type="button"
-                                class="drive-icon-button"
-                                title="Salin link folder"
-                                aria-label="Salin link folder"
-                                @click="copyLink(folder.share_url)"
-                            >
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path
-                                        d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 4"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
-                                    <path
-                                        d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L13 20"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-                            </button>
-
-                            <!-- EDIT -->
-                            <button
-                                type="button"
-                                class="drive-icon-button"
-                                title="Ubah nama folder"
-                                aria-label="Ubah nama folder"
-                                @click="renameFolder(folder)"
-                            >
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path
-                                        d="M4 20h4l10.5-10.5a2.121 2.121 0 1 0-3-3L5 17v3Z"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-                            </button>
-
-                            <!-- DELETE -->
-                            <button
-                                type="button"
-                                class="drive-icon-button danger"
-                                title="Hapus folder"
-                                aria-label="Hapus folder"
-                                @click="deleteFolder(folder)"
-                            >
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path
-                                        d="M3 6h18"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linecap="round"
-                                    />
-                                    <path
-                                        d="M8 6V4h8v2M7 6l1 14h8l1-14"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </article>
-                </div>
-            </section>
-
-            <!-- FILES -->
-            <section class="drive-card">
-                <div class="drive-section-heading">
-                    <h2>File</h2>
-                    <span>{{ files.length }} file</span>
-                </div>
-
-                <p v-if="files.length === 0" class="drive-empty">
-                    Belum ada file di lokasi ini.
-                </p>
-
-                <div v-else class="drive-list">
-                    <article
-                        v-for="file in files"
-                        :key="file.id"
-                        class="drive-item"
-                    >
-                        <div class="drive-item-main">
-                            <div class="drive-item-icon file">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path
-                                        d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linejoin="round"
-                                    />
-                                    <path
-                                        d="M14 3v5h5"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-                            </div>
-
-                            <div class="drive-item-text">
-                                <strong>{{ file.nama_tampilan }}</strong>
-                                <span>
-                                    {{ ukuran(file.ukuran_bytes) }} ·
-                                    {{ file.is_public ? 'Public' : 'Private' }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="drive-action-group">
-                            <!-- DOWNLOAD -->
-                            <a
-                                :href="file.download_url"
-                                class="drive-icon-button"
-                                title="Download file"
-                                aria-label="Download file"
-                            >
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path
-                                        d="M12 4v10M12 14l-4-4M12 14l4-4"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
-                                    <path
-                                        d="M4 18v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linecap="round"
-                                    />
-                                </svg>
-                            </a>
-
-                            <!-- PUBLIC / PRIVATE -->
-                            <button
-                                type="button"
-                                class="drive-icon-button"
-                                :title="file.is_public ? 'Jadikan private' : 'Jadikan public'"
-                                :aria-label="file.is_public ? 'Jadikan private' : 'Jadikan public'"
-                                @click="toggleFile(file)"
-                            >
-                                <svg v-if="file.is_public" viewBox="0 0 24 24" fill="none">
-                                    <path
-                                        d="M12 16c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5Z"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                    />
-                                    <path
-                                        d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-
-                                <svg v-else viewBox="0 0 24 24" fill="none">
-                                    <path
-                                        d="M7 11V8a5 5 0 0 1 10 0v3"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linecap="round"
-                                    />
-                                    <rect
-                                        x="5"
-                                        y="11"
-                                        width="14"
-                                        height="10"
-                                        rx="2"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                    />
-                                </svg>
-                            </button>
-
-                            <!-- LINK -->
-                            <button
-                                v-if="file.share_url"
-                                type="button"
-                                class="drive-icon-button"
-                                title="Salin link file"
-                                aria-label="Salin link file"
-                                @click="copyLink(file.share_url)"
-                            >
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path
-                                        d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 4"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
-                                    <path
-                                        d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L13 20"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-                            </button>
-
-                            <!-- EDIT -->
-                            <button
-                                type="button"
-                                class="drive-icon-button"
-                                title="Ubah nama file"
-                                aria-label="Ubah nama file"
-                                @click="renameFile(file)"
-                            >
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path
-                                        d="M4 20h4l10.5-10.5a2.121 2.121 0 1 0-3-3L5 17v3Z"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-                            </button>
-
-                            <!-- DELETE -->
-                            <button
-                                type="button"
-                                class="drive-icon-button danger"
-                                title="Hapus file"
-                                aria-label="Hapus file"
-                                @click="deleteFile(file)"
-                            >
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path
-                                        d="M3 6h18"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linecap="round"
-                                    />
-                                    <path
-                                        d="M8 6V4h8v2M7 6l1 14h8l1-14"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </article>
-                </div>
-            </section>
+            </main>
         </div>
     </AppLayout>
 </template>
 
 <style scoped>
 .drive-page {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    --bg: #f8fbff;
+    --panel: #fff;
+    --text: #172033;
+    --muted: #64748b;
+    --line: #e7edf5;
+    --blue: #1a73e8;
+    --teal: #009f8b;
+    --soft-blue: #eaf3ff;
+    min-height: calc(100vh - 56px);
+    margin: -18px;
+    padding: 0 28px 28px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.drive-header {
+.drive-topbar {
+    display: flex;
+    align-items: center;
+    min-height: 74px;
+    padding-left: 58px;
+}
+
+.drive-search {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: min(820px, 58vw);
+    height: 54px;
+    padding: 0 20px;
+    border-radius: 999px;
+    background: #edf3fb;
+    color: #526174;
+}
+
+.drive-search svg {
+    width: 21px;
+    height: 21px;
+    flex-shrink: 0;
+}
+
+.drive-search input {
+    flex: 1;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #334155;
+    font-size: 15px;
+}
+
+.drive-shell {
+    min-height: calc(100vh - 118px);
+    padding: 46px 48px 28px;
+    border-radius: 26px;
+    background: rgba(255, 255, 255, .96);
+    box-shadow: 0 1px 0 rgba(15, 23, 42, .03);
+}
+
+.drive-toolbar {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 20px;
+    gap: 24px;
+    margin-bottom: 34px;
 }
 
-.drive-eyebrow {
-    margin: 0 0 8px;
-    color: var(--primary);
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+.drive-toolbar h1 {
+    margin: 0 0 18px;
+    color: #172033;
+    font-size: 29px;
+    font-weight: 600;
+    letter-spacing: -.04em;
+    line-height: 1;
 }
 
-.drive-title {
-    margin: 0 0 8px;
-    color: var(--text);
-    font-size: 30px;
-    font-weight: 800;
-    line-height: 1.15;
+.drive-toolbar h1 span {
+    margin-left: 4px;
+    font-size: 16px;
 }
 
-.drive-subtitle {
-    margin: 0;
-    color: var(--muted);
-    font-size: 14px;
-    line-height: 1.55;
-}
-
-.drive-breadcrumb {
+.breadcrumb {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 9px;
-    font-size: 13px;
+    gap: 10px;
+    color: #94a3b8;
+    font-size: 14px;
 }
 
-.drive-breadcrumb-link {
-    color: #0d9488; /* was #4338ca */
-    font-weight: 600;
+.breadcrumb a {
+    color: #526174;
+    font-weight: 550;
     text-decoration: none;
 }
 
-.drive-breadcrumb-link:hover {
-    text-decoration: underline;
-}
-
-.drive-breadcrumb-divider {
-    color: #94a3b8;
-}
-
-.drive-alert-error {
-    padding: 13px 15px;
-    border: 1px solid #fecaca;
-    border-radius: 12px;
-    background: #fef2f2;
-    color: #b91c1c;
-    font-size: 14px;
-}
-
-.drive-tools-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-}
-
-.drive-card {
-    padding: 18px;
-    border: 1px solid var(--border);
-    border-radius: 17px;
-    background: var(--surface);
-}
-
-.drive-card-heading {
+.view-switch {
     display: flex;
     align-items: center;
-    gap: 11px;
-    margin-bottom: 16px;
+    overflow: hidden;
+    border: 1px solid #d6dfeb;
+    border-radius: 999px;
+    background: #fff;
 }
 
-.drive-card-heading h2 {
-    margin: 0;
-    color: var(--text);
+.view-switch button {
+    width: 52px;
+    height: 42px;
+    border: 0;
+    border-left: 1px solid #d6dfeb;
+    background: transparent;
+    color: #475569;
+    cursor: pointer;
     font-size: 17px;
-    font-weight: 750;
 }
 
-.drive-heading-icon {
-    display: grid;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 11px;
+.view-switch button:first-child {
+    border-left: 0;
 }
 
-.drive-heading-icon svg {
-    width: 21px;
-    height: 21px;
+.view-switch .active {
+    background: #dff3ef;
+    color: var(--teal);
 }
 
-.drive-heading-icon.folder {
-    color: #d97706;
-    background: #fffbeb;
+.action-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 38px;
 }
 
-.drive-heading-icon.file {
-color: #0d9488;  /* was #4338ca */
-background: #f0fdf9; /* was #eef2ff */;
+.filters,
+.primary-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
 
-.drive-form-row {
-    margin-bottom: 13px;
-}
-
-.drive-label {
-    display: block;
-    margin-bottom: 7px;
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 650;
-}
-
-.drive-input {
-    display: block;
-    width: 100%;
-    padding: 11px 13px;
-    border: 1px solid var(--border);
-    border-radius: 11px;
-    background: var(--surface);
-    color: var(--text);
-    font-size: 14px;
-    outline: none;
-}
-
-.drive-input:focus {
-border-color: #0d9488; /* was #4338ca */
-box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12); /* was indigo */
-}
-
-.drive-file-input {
-    padding: 8px 10px;
-}
-
-.drive-error {
-    margin-top: 6px;
-    color: #dc2626;
-    font-size: 12px;
-}
-
-.drive-primary-button {
+.filters button,
+.new-btn,
+.upload-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-    padding: 10px 14px;
-    border: 0;
-    border-radius: 10px;
-    background: #0d9488; /* was #4338ca */
-    color: #ffffff;
+    gap: 8px;
+    min-height: 46px;
+    padding: 0 18px;
+    border: 1px solid #dbe3ee;
+    border-radius: 11px;
+    background: #fff;
+    color: #334155;
     cursor: pointer;
-    font-size: 13px;
-    font-weight: 700;
-    transition: background 0.2s ease, opacity 0.2s ease;
-}
-
-.drive-primary-button:hover {
-    background: #0f766e; /* was #3730a3 */
-}
-
-.drive-primary-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.drive-primary-button svg {
-    width: 17px;
-    height: 17px;
-}
-
-.drive-current-folder {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px;
-}
-
-.drive-current-main {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-}
-
-.drive-current-title {
-    margin: 0 0 5px;
-    color: var(--text);
-    font-size: 16px;
-    font-weight: 700;
-}
-
-.drive-section-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 15px;
-}
-
-.drive-section-heading h2 {
-    margin: 0;
-    color: var(--text);
-    font-size: 17px;
-    font-weight: 750;
-}
-
-.drive-section-heading span {
-    color: var(--muted);
-    font-size: 13px;
-}
-
-.drive-empty {
-    margin: 0;
-    padding: 12px 0 3px;
-    color: var(--muted);
     font-size: 14px;
+    font-weight: 650;
+    box-shadow: 0 2px 5px rgba(15, 23, 42, .025);
 }
 
-.drive-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.filters button:nth-child(3) {
+    min-width: 170px;
 }
 
-.drive-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 15px;
-    padding: 12px;
-    border: 1px solid var(--border);
+.new-btn {
+    min-width: 138px;
+    color: #334155;
+}
+
+.new-btn > span {
+    color: var(--teal);
+    font-size: 24px;
+    line-height: 0;
+}
+
+.new-btn small {
+    color: #64748b;
+    font-size: 11px;
+}
+
+.upload-btn {
+    min-width: 132px;
+    border-color: var(--teal);
+    background: var(--teal);
+    color: #fff;
+    box-shadow: 0 9px 20px rgba(0, 159, 139, .18);
+}
+
+.file-picker {
+    display: none;
+}
+
+.error-box {
+    margin: -18px 0 22px;
+    padding: 13px 15px;
     border-radius: 13px;
-    transition: border-color 0.2s ease, background 0.2s ease;
+    background: #fce8e6;
+    color: #a50e0e;
+    font-size: 14px;
 }
 
-.drive-item:hover {
-    border-color: var(--primary);
-    background: var(--nav-hover);
+.create-folder-card {
+    margin: -18px 0 24px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fbfdff;
 }
 
-.drive-item-main {
+.create-folder-card form {
     display: flex;
-    align-items: center;
     gap: 12px;
-    min-width: 0;
-    color: inherit;
-    text-decoration: none;
 }
 
-.drive-item-icon {
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    width: 42px;
-    height: 42px;
+.create-folder-card input {
+    flex: 1;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid #dbe3ee;
     border-radius: 12px;
+    outline: 0;
 }
 
-.drive-item-icon svg {
-    width: 23px;
-    height: 23px;
+.create-folder-card button {
+    min-height: 44px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--teal);
+    color: #fff;
+    cursor: pointer;
+    font-weight: 700;
 }
 
-.drive-item-icon.folder {
-    color: #d97706;
-    background: #fef3c7;
+.create-folder-card small {
+    display: block;
+    margin-top: 8px;
+    color: #d93025;
 }
 
-.drive-item-icon.file {
-    color: var(--primary);
-    background: var(--primary-soft);
+.drive-table {
+    width: 100%;
 }
 
-.drive-item-text {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
+.table-head,
+.table-row {
+    display: grid;
+    grid-template-columns: minmax(300px, 1.55fr) minmax(160px, .52fr) minmax(190px, .72fr) minmax(120px, .42fr) 86px;
+    align-items: center;
+    column-gap: 24px;
 }
 
-.drive-item-text strong {
-    overflow: hidden;
-    color: var(--text);
+.table-head {
+    min-height: 60px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    color: #46566d;
     font-size: 14px;
     font-weight: 700;
+}
+
+.table-head > div:first-child {
+    padding-left: 18px;
+}
+
+.table-head > div:last-child {
+    text-align: right;
+    padding-right: 24px;
+    font-size: 22px;
+    letter-spacing: 2px;
+}
+
+.sort-arrow {
+    margin-left: 8px;
+    color: #1e293b;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.table-row {
+    min-height: 86px;
+    border-bottom: 1px solid var(--line);
+    color: #53657f;
+    font-size: 15px;
+    text-decoration: none;
+    transition: background .16s ease, box-shadow .16s ease;
+}
+
+.table-row:hover {
+    background: #fbfdff;
+    box-shadow: inset 4px 0 0 rgba(0, 159, 139, .18);
+}
+
+.name-cell,
+.owner {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+}
+
+.name-cell {
+    padding-left: 26px;
+}
+
+.name-cell strong {
+    overflow: hidden;
+    color: #334155;
+    font-size: 15px;
+    font-weight: 550;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.drive-item-text span,
-.drive-item-meta {
-    color: var(--muted);
-    font-size: 12px;
-}
-
-.drive-action-group {
-    display: flex;
-    align-items: center;
-    gap: 7px;
+.folder-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    color: #334155;
     flex-shrink: 0;
 }
 
-.drive-status {
-    padding: 5px 9px;
+.folder-icon svg {
+    width: 34px;
+    height: 34px;
+}
+
+.file-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 34px;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.file-icon.pdf { background: #ef4444; }
+.file-icon.doc { background: #4285f4; }
+.file-icon.sheet { background: #16a34a; }
+.file-icon.img { background: #fbbc04; }
+.file-icon.file { background: #64748b; }
+
+.avatar-mini {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
     border-radius: 999px;
-    background: #f1f5f9;
+    background: #d8f8e9;
+    color: #009f8b;
+    font-size: 13px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.row-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    padding-right: 20px;
+    opacity: .35;
+    transition: opacity .16s ease;
+}
+
+.table-row:hover .row-actions {
+    opacity: 1;
+}
+
+.row-actions button,
+.row-actions a {
+    display: none;
+    min-height: 30px;
+    padding: 0 9px;
+    border: 1px solid #dbe3ee;
+    border-radius: 999px;
+    background: #fff;
     color: #475569;
-    font-size: 11px;
+    cursor: pointer;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.table-row:hover .row-actions button,
+.table-row:hover .row-actions a {
+    display: inline-flex;
+    align-items: center;
+}
+
+.row-actions span {
+    color: #24364f;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.empty-state {
+    min-height: 360px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 6px;
+    color: #64748b;
+    text-align: center;
+}
+
+.empty-icon {
+    color: #64748b;
+    font-size: 34px;
+}
+
+.empty-state h2 {
+    margin: 0;
+    color: #172033;
+    font-size: 18px;
     font-weight: 700;
 }
 
-.drive-status.public {
-    background: #ecfdf5;
-    color: #047857;
+.empty-state p {
+    margin: 0;
+    font-size: 13px;
 }
 
-.drive-icon-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 37px;
-    height: 37px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--surface);
-    color: var(--muted);
-    cursor: pointer;
-    text-decoration: none;
-    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
-}
-
-.drive-icon-button:hover {
-    border-color: var(--primary);
-    background: var(--primary-soft);
-    color: var(--primary);
-}
-
-.drive-icon-button svg {
-    width: 18px;
-    height: 18px;
-}
-
-.drive-icon-button.danger {
-    color: #dc2626;
-}
-
-.drive-icon-button.danger:hover {
-    border-color: #fecaca;
-    background: #fef2f2;
-    color: #b91c1c;
-}
-
-@media (max-width: 900px) {
-    .drive-tools-grid {
-        grid-template-columns: 1fr;
+@media (max-width: 1100px) {
+    .drive-topbar {
+        padding-left: 0;
     }
 
-    .drive-current-folder,
-    .drive-item {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .drive-action-group {
+    .drive-search {
         width: 100%;
-        justify-content: flex-end;
+    }
+
+    .drive-shell {
+        padding: 34px 28px;
+    }
+
+    .action-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .table-head,
+    .table-row {
+        grid-template-columns: minmax(260px, 1.4fr) minmax(120px, .5fr) minmax(150px, .65fr) minmax(80px, .35fr) 70px;
     }
 }
 
-@media (max-width: 560px) {
-    .drive-title {
-        font-size: 25px;
+@media (max-width: 760px) {
+    .drive-page {
+        margin: -12px;
+        padding: 0 14px 20px;
     }
 
-    .drive-action-group {
+    .drive-shell {
+        padding: 24px 18px;
+        border-radius: 22px;
+    }
+
+    .drive-toolbar {
+        flex-direction: column;
+    }
+
+    .table-head {
+        display: none;
+    }
+
+    .table-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 14px 0;
+    }
+
+    .name-cell,
+    .table-head > div:first-child {
+        padding-left: 0;
+    }
+
+    .row-actions {
         justify-content: flex-start;
-        flex-wrap: wrap;
+        padding-right: 0;
+        opacity: 1;
     }
 
-    .drive-item-text strong {
-        white-space: normal;
+    .row-actions button,
+    .row-actions a {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .create-folder-card form {
+        flex-direction: column;
     }
 }
 
-:global(html.dark) .drive-item-icon.folder {
-    background: rgba(217, 119, 6, 0.2);
+:global(html.dark) .drive-page {
+    --bg: #0f172a;
+    --panel: #111827;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --line: #273549;
+}
+
+:global(html.dark) .drive-search,
+:global(html.dark) .filters button,
+:global(html.dark) .new-btn,
+:global(html.dark) .create-folder-card,
+:global(html.dark) .row-actions button,
+:global(html.dark) .row-actions a,
+:global(html.dark) .view-switch {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+:global(html.dark) .drive-toolbar h1,
+:global(html.dark) .name-cell strong,
+:global(html.dark) .empty-state h2 {
+    color: #f8fafc;
 }
 </style>

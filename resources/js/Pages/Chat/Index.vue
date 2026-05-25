@@ -905,7 +905,7 @@ function renderAssistantMessage(content) {
 .chat-suggestions button:hover {
     border-color: var(--primary);
     background: var(--primary-soft);
-    color: var(--primary);    
+    color: var(--primary);
 }
 
 .chat-message {
@@ -927,7 +927,7 @@ function renderAssistantMessage(content) {
     height: 35px;
     border-radius: 10px;
     background: var(--primary-soft);
-    color: var(--primary);  
+    color: var(--primary);
     font-size: 14px;
     font-weight: 700;
 }
@@ -964,10 +964,10 @@ function renderAssistantMessage(content) {
 }
 
 .chat-message.user .chat-bubble {
-    
+
     border-radius: 15px 15px 4px 15px;
     border-color: #0d9488; /* was #4338ca */
-    background: #0d9488; 
+    background: #0d9488;
     color: #ffffff;
 }
 
@@ -1013,7 +1013,7 @@ function renderAssistantMessage(content) {
     padding: 2px 6px;
     border-radius: 6px;
     background: var(--primary-soft);
-    color: var(--primary);   
+    color: var(--primary);
     font-family: Consolas, Monaco, monospace;
     font-size: 12px;
 }
@@ -1136,7 +1136,7 @@ function renderAssistantMessage(content) {
     height: 37px;
     border-radius: 10px;
     background: var(--primary-soft);
-    color: var(--primary); 
+    color: var(--primary);
 }
 
 .attached-document-icon svg {
@@ -1213,7 +1213,7 @@ function renderAssistantMessage(content) {
 
 .composer-box:focus-within {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1); 
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
 }
 
 .composer-plus {

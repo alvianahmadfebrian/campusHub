@@ -186,7 +186,7 @@ onBeforeUnmount(() => {
                     Chatbot
                 </Link>
             </nav>
-            
+
 
             <!-- FOOTER -->
             <div class="sidebar-footer">
