@@ -14,6 +14,7 @@ const props = defineProps({
 const fileInput = ref(null)
 const showCreate = ref(false)
 const query = ref('')
+const openMenu = ref(null)
 
 const createFolderForm = useForm({
     nama: '',
@@ -42,8 +43,13 @@ watch(
     (folderId) => {
         createFolderForm.parent_id = folderId || null
         uploadForm.folder_id = folderId || null
+        openMenu.value = null
     }
 )
+
+function toggleMenu(key) {
+    openMenu.value = openMenu.value === key ? null : key
+}
 
 function createFolder() {
     createFolderForm.post('/drive/folders', {
@@ -124,6 +130,10 @@ function ukuran(bytes) {
     return `${(bytes / Math.pow(1024, index)).toFixed(index === 0 ? 0 : 1)} ${units[index]}`
 }
 
+function folderUkuran(folder) {
+    return ukuran(folder.ukuran_bytes || folder.size || folder.total_size)
+}
+
 function tanggal(item) {
     return item.updated_at || item.created_at || '1 Jun 2025'
 }
@@ -142,12 +152,16 @@ function fileType(name) {
     <Head title="Drive" />
 
     <AppLayout>
-        <div class="drive-page">
+        <div class="drive-page" @click="openMenu = null">
             <header class="drive-topbar">
                 <div class="drive-search">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="m21 21-4.2-4.2M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="m21 21-4.2-4.2M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
                     <input v-model="query" type="search" placeholder="Telusuri di Drive" />
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M8 5v4M16 15v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M4 7h10M18 7h2M4 17h2M10 17h10M8 5v4M16 15v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
                 </div>
             </header>
 
@@ -165,19 +179,19 @@ function fileType(name) {
                     </div>
 
                     <div class="view-switch">
-                        <button class="active" type="button" title="List view">☰</button>
-                        <button type="button" title="Grid view">▦</button>
-                        <button type="button" title="Info">ⓘ</button>
+                        <button class="active" type="button">☰</button>
+                        <button type="button">▦</button>
+                        <button type="button">ⓘ</button>
                     </div>
                 </section>
 
                 <section class="action-row">
-
                     <div class="primary-actions">
-                        <button class="new-btn" type="button" @click="showCreate = !showCreate">
+                        <button class="new-btn" type="button" @click.stop="showCreate = !showCreate">
                             <span>＋</span> Baru <small>⌄</small>
                         </button>
-                        <button class="upload-btn" type="button" :disabled="uploadForm.processing" @click="openUploadPicker">
+
+                        <button class="upload-btn" type="button" :disabled="uploadForm.processing" @click.stop="openUploadPicker">
                             <span>⇧</span> {{ uploadForm.processing ? 'Mengunggah...' : 'Upload' }}
                         </button>
                     </div>
@@ -188,7 +202,7 @@ function fileType(name) {
                 <div v-if="$page.props.errors?.drive" class="error-box">{{ $page.props.errors.drive }}</div>
                 <div v-if="uploadForm.errors.file" class="error-box">{{ uploadForm.errors.file }}</div>
 
-                <section v-if="showCreate" class="create-folder-card">
+                <section v-if="showCreate" class="create-folder-card" @click.stop>
                     <form @submit.prevent="createFolder">
                         <input v-model="createFolderForm.nama" type="text" placeholder="Nama folder baru" required />
                         <button type="submit" :disabled="createFolderForm.processing">
@@ -209,36 +223,52 @@ function fileType(name) {
 
                     <Link v-for="folder in filteredFolders" :key="`folder-${folder.id}`" :href="folder.open_url" class="table-row">
                         <div class="name-cell">
-                            <span class="folder-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 4l2 2h8a2 2 0 0 1 2 2v10.2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6Z"/></svg></span>
+                            <span class="folder-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M10 4l2 2h8a2 2 0 0 1 2 2v10.2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6Z"/>
+                                </svg>
+                            </span>
                             <strong>{{ folder.nama }}</strong>
                         </div>
+
                         <div class="owner"><span class="avatar-mini">E</span> saya</div>
                         <div>{{ tanggal(folder) }}</div>
-                        <div>—</div>
-                        <div class="row-actions" @click.prevent>
-                            <button type="button" @click="toggleFolder(folder)">{{ folder.is_public ? 'Private' : 'Public' }}</button>
-                            <button v-if="folder.share_url" type="button" @click="copyLink(folder.share_url)">Link</button>
-                            <button type="button" @click="renameFolder(folder)">Rename</button>
-                            <button type="button" @click="deleteFolder(folder)">Hapus</button>
-                            <span>⋮</span>
+                        <div>{{ folderUkuran(folder) }}</div>
+
+                        <div class="row-actions" @click.prevent.stop>
+                            <button class="dots-btn" type="button" @click="toggleMenu(`folder-${folder.id}`)">⋮</button>
+
+                            <div v-if="openMenu === `folder-${folder.id}`" class="menu-popover">
+                                <button type="button" @click="toggleFolder(folder)">{{ folder.is_public ? 'Private' : 'Public' }}</button>
+                                <button v-if="folder.share_url" type="button" @click="copyLink(folder.share_url)">Salin Link</button>
+                                <button type="button" @click="renameFolder(folder)">Rename</button>
+                                <button class="danger" type="button" @click="deleteFolder(folder)">Hapus</button>
+                            </div>
                         </div>
                     </Link>
 
                     <div v-for="file in filteredFiles" :key="`file-${file.id}`" class="table-row">
                         <div class="name-cell">
-                            <span class="file-icon" :class="fileType(file.nama_tampilan)">{{ fileType(file.nama_tampilan) === 'pdf' ? 'PDF' : '▤' }}</span>
+                            <span class="file-icon" :class="fileType(file.nama_tampilan)">
+                                {{ fileType(file.nama_tampilan) === 'pdf' ? 'PDF' : '▤' }}
+                            </span>
                             <strong>{{ file.nama_tampilan }}</strong>
                         </div>
+
                         <div class="owner"><span class="avatar-mini">E</span> saya</div>
                         <div>{{ tanggal(file) }}</div>
                         <div>{{ ukuran(file.ukuran_bytes) }}</div>
-                        <div class="row-actions">
-                            <a :href="file.download_url">Download</a>
-                            <button type="button" @click="toggleFile(file)">{{ file.is_public ? 'Private' : 'Public' }}</button>
-                            <button v-if="file.share_url" type="button" @click="copyLink(file.share_url)">Link</button>
-                            <button type="button" @click="renameFile(file)">Rename</button>
-                            <button type="button" @click="deleteFile(file)">Hapus</button>
-                            <span>⋮</span>
+
+                        <div class="row-actions" @click.stop>
+                            <button class="dots-btn" type="button" @click="toggleMenu(`file-${file.id}`)">⋮</button>
+
+                            <div v-if="openMenu === `file-${file.id}`" class="menu-popover">
+                                <a :href="file.download_url">Download</a>
+                                <button type="button" @click="toggleFile(file)">{{ file.is_public ? 'Private' : 'Public' }}</button>
+                                <button v-if="file.share_url" type="button" @click="copyLink(file.share_url)">Salin Link</button>
+                                <button type="button" @click="renameFile(file)">Rename</button>
+                                <button class="danger" type="button" @click="deleteFile(file)">Hapus</button>
+                            </div>
                         </div>
                     </div>
 
@@ -256,13 +286,11 @@ function fileType(name) {
 <style scoped>
 .drive-page {
     --bg: #f8fbff;
-    --panel: #fff;
     --text: #172033;
     --muted: #64748b;
     --line: #e7edf5;
-    --blue: #1a73e8;
     --teal: #009f8b;
-    --soft-blue: #eaf3ff;
+
     min-height: calc(100vh - 56px);
     margin: -18px;
     padding: 0 28px 28px;
@@ -307,9 +335,9 @@ function fileType(name) {
 
 .drive-shell {
     min-height: calc(100vh - 118px);
-    padding: 46px 48px 28px;
-    border-radius: 26px;
-    background: rgba(255, 255, 255, .96);
+    padding: 42px 44px 28px;
+    border-radius: 24px;
+    background: #fff;
     box-shadow: 0 1px 0 rgba(15, 23, 42, .03);
 }
 
@@ -318,11 +346,11 @@ function fileType(name) {
     align-items: flex-start;
     justify-content: space-between;
     gap: 24px;
-    margin-bottom: 34px;
+    margin-bottom: 30px;
 }
 
 .drive-toolbar h1 {
-    margin: 0 0 18px;
+    margin: 0 0 16px;
     color: #172033;
     font-size: 29px;
     font-weight: 600;
@@ -382,48 +410,47 @@ function fileType(name) {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    margin-bottom: 38px;
+    margin: -8px 0 32px;
 }
 
-.filters,
 .primary-actions {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
 }
 
-.filters button,
 .new-btn,
 .upload-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-height: 46px;
+    min-height: 42px;
     padding: 0 18px;
-    border: 1px solid #dbe3ee;
-    border-radius: 11px;
-    background: #fff;
-    color: #334155;
+    border-radius: 12px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 650;
-    box-shadow: 0 2px 5px rgba(15, 23, 42, .025);
-}
-
-.filters button:nth-child(3) {
-    min-width: 170px;
+    transition: .18s ease;
 }
 
 .new-btn {
-    min-width: 138px;
+    min-width: 120px;
+    border: 1px solid #dbe3ee;
+    background: #fff;
     color: #334155;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .04);
+}
+
+.new-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
 }
 
 .new-btn > span {
     color: var(--teal);
-    font-size: 24px;
-    line-height: 0;
+    font-size: 21px;
+    line-height: 1;
 }
 
 .new-btn small {
@@ -432,11 +459,15 @@ function fileType(name) {
 }
 
 .upload-btn {
-    min-width: 132px;
-    border-color: var(--teal);
+    min-width: 120px;
+    border: 1px solid var(--teal);
     background: var(--teal);
     color: #fff;
-    box-shadow: 0 9px 20px rgba(0, 159, 139, .18);
+    box-shadow: 0 8px 18px rgba(0, 159, 139, .18);
+}
+
+.upload-btn:hover {
+    transform: translateY(-1px);
 }
 
 .file-picker {
@@ -444,7 +475,7 @@ function fileType(name) {
 }
 
 .error-box {
-    margin: -18px 0 22px;
+    margin: -12px 0 20px;
     padding: 13px 15px;
     border-radius: 13px;
     background: #fce8e6;
@@ -453,7 +484,7 @@ function fileType(name) {
 }
 
 .create-folder-card {
-    margin: -18px 0 24px;
+    margin: -12px 0 22px;
     padding: 16px;
     border: 1px solid var(--line);
     border-radius: 16px;
@@ -504,7 +535,7 @@ function fileType(name) {
 }
 
 .table-head {
-    min-height: 60px;
+    min-height: 54px;
     border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
     color: #46566d;
@@ -526,12 +557,12 @@ function fileType(name) {
 .sort-arrow {
     margin-left: 8px;
     color: #1e293b;
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 600;
 }
 
 .table-row {
-    min-height: 86px;
+    min-height: 76px;
     border-bottom: 1px solid var(--line);
     color: #53657f;
     font-size: 15px;
@@ -541,7 +572,7 @@ function fileType(name) {
 
 .table-row:hover {
     background: #fbfdff;
-    box-shadow: inset 4px 0 0 rgba(0, 159, 139, .18);
+    box-shadow: inset 4px 0 0 rgba(0, 159, 139, .14);
 }
 
 .name-cell,
@@ -611,47 +642,72 @@ function fileType(name) {
 }
 
 .row-actions {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 6px;
     padding-right: 20px;
-    opacity: .35;
-    transition: opacity .16s ease;
 }
 
-.table-row:hover .row-actions {
-    opacity: 1;
-}
-
-.row-actions button,
-.row-actions a {
-    display: none;
-    min-height: 30px;
-    padding: 0 9px;
-    border: 1px solid #dbe3ee;
+.dots-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 0;
     border-radius: 999px;
-    background: #fff;
-    color: #475569;
-    cursor: pointer;
-    font-size: 12px;
-    text-decoration: none;
-}
-
-.table-row:hover .row-actions button,
-.table-row:hover .row-actions a {
-    display: inline-flex;
-    align-items: center;
-}
-
-.row-actions span {
+    background: transparent;
     color: #24364f;
+    cursor: pointer;
     font-size: 24px;
     line-height: 1;
 }
 
+.dots-btn:hover {
+    background: #edf3fb;
+}
+
+.menu-popover {
+    position: absolute;
+    top: 38px;
+    right: 18px;
+    z-index: 50;
+    min-width: 158px;
+    padding: 8px;
+    border: 1px solid #dbe3ee;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, .14);
+}
+
+.menu-popover button,
+.menu-popover a {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #334155;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+    text-decoration: none;
+}
+
+.menu-popover button:hover,
+.menu-popover a:hover {
+    background: #f1f5f9;
+}
+
+.menu-popover .danger {
+    color: #dc2626;
+}
+
 .empty-state {
-    min-height: 360px;
+    min-height: 330px;
     display: grid;
     place-items: center;
     align-content: center;
@@ -691,8 +747,7 @@ function fileType(name) {
     }
 
     .action-row {
-        align-items: flex-start;
-        flex-direction: column;
+        justify-content: flex-start;
     }
 
     .table-head,
@@ -734,13 +789,11 @@ function fileType(name) {
     .row-actions {
         justify-content: flex-start;
         padding-right: 0;
-        opacity: 1;
     }
 
-    .row-actions button,
-    .row-actions a {
-        display: inline-flex;
-        align-items: center;
+    .menu-popover {
+        left: 0;
+        right: auto;
     }
 
     .create-folder-card form {
@@ -750,26 +803,39 @@ function fileType(name) {
 
 :global(html.dark) .drive-page {
     --bg: #0f172a;
-    --panel: #111827;
     --text: #f8fafc;
     --muted: #94a3b8;
     --line: #273549;
 }
 
+:global(html.dark) .drive-shell {
+    background: #111827;
+}
+
 :global(html.dark) .drive-search,
-:global(html.dark) .filters button,
 :global(html.dark) .new-btn,
 :global(html.dark) .create-folder-card,
-:global(html.dark) .row-actions button,
-:global(html.dark) .row-actions a,
-:global(html.dark) .view-switch {
+:global(html.dark) .view-switch,
+:global(html.dark) .menu-popover {
     background: #1e293b;
     color: #e2e8f0;
 }
 
+:global(html.dark) .menu-popover button,
+:global(html.dark) .menu-popover a,
 :global(html.dark) .drive-toolbar h1,
 :global(html.dark) .name-cell strong,
 :global(html.dark) .empty-state h2 {
     color: #f8fafc;
+}
+
+:global(html.dark) .dots-btn {
+    color: #e2e8f0;
+}
+
+:global(html.dark) .dots-btn:hover,
+:global(html.dark) .menu-popover button:hover,
+:global(html.dark) .menu-popover a:hover {
+    background: #334155;
 }
 </style>
