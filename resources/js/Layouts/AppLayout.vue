@@ -226,70 +226,89 @@ onBeforeUnmount(() => {
         <div class="student-main">
             <!-- TOPBAR -->
             <header class="student-topbar">
-                <button
-                    type="button"
-                    class="mobile-menu-button"
-                    aria-label="Buka menu"
-                    :aria-expanded="sidebarOpen"
-                    @click="openSidebar"
-                >
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                    </svg>
-                </button>
+    <!-- MOBILE MENU -->
+    <button
+        type="button"
+        class="mobile-menu-button"
+        aria-label="Buka menu"
+        :aria-expanded="sidebarOpen"
+        @click="openSidebar"
+    >
+        <svg viewBox="0 0 24 24" fill="none">
+            <path
+                d="M4 6h16M4 12h16M4 18h16"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+            />
+        </svg>
+    </button>
 
-                <div class="student-search">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
-                        <path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                    </svg>
+    <!-- SPACER -->
+    <div class="topbar-spacer"></div>
 
-                    <input type="text" placeholder="Cari" />
-                </div>
+    <!-- RIGHT -->
+    <div class="topbar-right">
+        <!-- DARK MODE -->
+        <button
+            type="button"
+            class="icon-button"
+            :title="isDark ? 'Mode Terang' : 'Mode Gelap'"
+            @click="toggleDark"
+        >
+            <svg v-if="isDark" viewBox="0 0 24 24" fill="none">
+                <circle
+                    cx="12"
+                    cy="12"
+                    r="5"
+                    stroke="currentColor"
+                    stroke-width="2"
+                />
 
-                <div class="topbar-right">
-                    <!-- DARK MODE TOGGLE -->
-                    <button
-                        type="button"
-                        class="icon-button"
-                        :title="isDark ? 'Mode Terang' : 'Mode Gelap'"
-                        @click="toggleDark"
-                    >
-                        <svg v-if="isDark" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
-                            <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
+                <path
+                    d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                />
+            </svg>
 
-                        <svg v-else viewBox="0 0 24 24" fill="none">
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
+            <svg v-else viewBox="0 0 24 24" fill="none">
+                <path
+                    d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linejoin="round"
+                />
+            </svg>
+        </button>
 
-                    <button type="button" class="admin-icon-btn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                        </svg>
-                        <span class="admin-notif-dot"></span>
-                    </button>
+        <!-- USER -->
+        <div class="user-pill">
+            <div class="user-avatar">
+                <img
+                    v-if="avatarUrl"
+                    :src="avatarUrl"
+                    :alt="displayName"
+                />
 
-                    <div class="user-pill">
-                        <div class="user-avatar">
-                            <img
-                                v-if="avatarUrl"
-                                :src="avatarUrl"
-                                :alt="displayName"
-                            />
-                            <span v-else>{{ initials }}</span>
-                        </div>
+                <span v-else>
+                    {{ initials }}
+                </span>
+            </div>
 
-                        <div class="user-meta">
-                            <p class="user-name">{{ displayName }}</p>
-                            <p class="user-nim">{{ displayNim }}</p>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <div class="user-meta">
+                <p class="user-name">
+                    {{ displayName }}
+                </p>
+
+                <p class="user-nim">
+                    {{ displayNim }}
+                </p>
+            </div>
+        </div>
+    </div>
+</header>
 
             <!-- CONTENT -->
             <main class="student-content">
@@ -693,73 +712,27 @@ onBeforeUnmount(() => {
     }
 
     .student-topbar {
-        justify-content: flex-start;
-        gap: 10px;
-        padding: 0 14px;
-    }
-
-    .mobile-menu-button {
-        display: grid;
-        place-items: center;
-        flex-shrink: 0;
-        width: 39px;
-        height: 39px;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        background: var(--surface);
-        color: var(--text);
-        cursor: pointer;
-    }
-
-    .mobile-menu-button svg {
-        width: 20px;
-        height: 20px;
-    }
-
-    .student-search {
-        flex: 1;
-        width: auto;
-        min-width: 0;
-    }
-
-    .topbar-right {
-        margin-left: auto;
-    }
-
-    .student-content {
-        padding: 20px 16px;
-    }
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 62px;
+    padding: 0 26px;
+    border-bottom: 1px solid var(--border);
+    background: var(--topbar-bg);
 }
 
-@media (max-width: 580px) {
-    .student-topbar {
-        gap: 8px;
-        padding: 0 10px;
-    }
+.topbar-spacer {
+    flex: 1;
+}
 
-    .mobile-menu-button {
-        width: 37px;
-        height: 37px;
-    }
-
-    .student-search input::placeholder {
-        color: transparent;
-    }
-
-    .settings-button {
-        display: none;
-    }
-
-    .user-pill {
-        padding: 4px;
-    }
-
-    .user-meta {
-        display: none;
-    }
-
-    .student-content {
-        padding: 18px 12px;
-    }
+.topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 }
 </style>
