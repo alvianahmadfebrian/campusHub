@@ -2688,3 +2688,255 @@ img {
         grid-template-columns: 1fr;
     }
 }
+
+/* ===============================================================
+   DARK MODE — tambahkan di bagian PALING BAWAH app.css
+   =============================================================== */
+
+/* Transisi halus saat ganti mode */
+html {
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ── GLOBAL DARK ── */
+html.dark {
+    --primary: #0d9488;
+    --primary-soft: #134e4a;
+    --primary-hover: #0f766e;
+    --surface: #1e293b;
+    --background: #0f172a;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #334155;
+    --success: #10b981;
+    --success-soft: #064e3b;
+    --danger: #ef4444;
+}
+
+html.dark body {
+    background: var(--background);
+    color: var(--text);
+}
+
+/* ── CARD & SURFACE ── */
+html.dark .card,
+html.dark .pcard,
+html.dark .modal-box,
+html.dark .peng-card,
+html.dark .db-card,
+html.dark .sl-content {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+/* ── NAVIGATION (AppLayout student) ── */
+html.dark .sl-sidebar,
+html.dark .db-sidebar {
+    background: #1e293b;
+    border-right-color: #334155;
+}
+
+html.dark .sl-topbar,
+html.dark .db-topbar {
+    background: #1e293b;
+    border-bottom-color: #334155;
+}
+
+html.dark .sl-nav-item,
+html.dark .db-nav-item,
+html.dark .sl-footer-link,
+html.dark .db-footer-link {
+    color: #94a3b8;
+}
+
+html.dark .sl-nav-item:hover,
+html.dark .db-nav-item:hover,
+html.dark .sl-footer-link:hover,
+html.dark .db-footer-link:hover {
+    background: #0f172a;
+    color: #f1f5f9;
+}
+
+html.dark .sl-nav-item.active,
+html.dark .db-nav-item.active {
+    background: #134e4a;
+    color: #0d9488;
+}
+
+html.dark .sl-brand-name,
+html.dark .db-brand-name {
+    color: #f1f5f9;
+}
+
+/* ── SEARCH ── */
+html.dark .sl-search,
+html.dark .db-search,
+html.dark .admin-search {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+html.dark .sl-search input,
+html.dark .db-search input,
+html.dark .admin-search input {
+    color: #f1f5f9;
+}
+
+/* ── ICON BUTTONS ── */
+html.dark .sl-icon-btn,
+html.dark .db-icon-btn,
+html.dark .admin-icon-btn {
+    background: #0f172a;
+    border-color: #334155;
+    color: #94a3b8;
+}
+
+/* ── USER PILL ── */
+html.dark .sl-user-pill,
+html.dark .db-user-pill,
+html.dark .admin-user-pill {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+html.dark .sl-user-name,
+html.dark .db-user-name,
+html.dark .admin-user-name {
+    color: #f1f5f9;
+}
+
+/* ── TABLES ── */
+html.dark table {
+    color: #cbd5e1;
+}
+
+html.dark th {
+    background: #1e293b;
+    color: #94a3b8;
+    border-bottom-color: #334155;
+}
+
+html.dark td {
+    border-bottom-color: #1e293b;
+    color: #cbd5e1;
+}
+
+html.dark td strong {
+    color: #f1f5f9;
+}
+
+/* ── FORMS & INPUTS ── */
+html.dark .input,
+html.dark .ph-input,
+html.dark .admin-input,
+html.dark .drive-input,
+html.dark .peng-select {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+html.dark .input:focus,
+html.dark .ph-input:focus {
+    border-color: #0d9488;
+}
+
+html.dark .label,
+html.dark .ph-label,
+html.dark .admin-label,
+html.dark .drive-label {
+    color: #94a3b8;
+}
+
+/* ── MISC TEXT ── */
+html.dark .eyebrow { color: #0d9488; }
+html.dark .title,
+html.dark h1, html.dark h2, html.dark h3 { color: #f1f5f9; }
+html.dark .muted,
+html.dark .subtitle { color: #94a3b8; }
+
+/* ── STAT CARDS ── */
+html.dark .db-stat.teal { background: #134e4a; }
+html.dark .db-stat.green { background: #14532d; }
+html.dark .db-stat.orange { background: #431407; }
+html.dark .db-stat.purple { background: #2e1065; }
+
+/* ── PENG CARDS ── */
+html.dark .peng-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+html.dark .peng-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+html.dark .peng-card-title { color: #f1f5f9; }
+html.dark .peng-card-footer { border-top-color: #334155; }
+
+html.dark .peng-pill {
+    background: #1e293b;
+    border-color: #334155;
+    color: #94a3b8;
+}
+
+html.dark .peng-pill:hover {
+    border-color: #0d9488;
+    color: #0d9488;
+}
+
+/* ── DRIVE ── */
+html.dark .drive-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+html.dark .drive-item {
+    border-color: #334155;
+}
+
+html.dark .drive-item:hover {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+html.dark .drive-icon-button {
+    background: #1e293b;
+    border-color: #334155;
+    color: #94a3b8;
+}
+
+html.dark .drive-icon-button:hover {
+    background: #134e4a;
+    border-color: #0d9488;
+    color: #0d9488;
+}
+
+/* ── MODAL ── */
+html.dark .modal-backdrop { background: rgba(0,0,0,0.7); }
+html.dark .modal-close {
+    background: #334155;
+    border-color: #475569;
+    color: #94a3b8;
+}
+
+/* ── FLASH ── */
+html.dark .admin-flash,
+html.dark .db-flash,
+html.dark .sl-flash,
+html.dark .student-flash {
+    background: #134e4a;
+    border-color: #0d9488;
+    color: #99f6e4;
+}
+
+/* ── BREADCRUMB ── */
+html.dark .drive-breadcrumb-link { color: #0d9488; }
+html.dark .drive-breadcrumb-divider { color: #475569; }
+
+/* ── SCROLLBAR (opsional, bagus untuk dark mode) ── */
+html.dark ::-webkit-scrollbar { width: 6px; height: 6px; }
+html.dark ::-webkit-scrollbar-track { background: #1e293b; }
+html.dark ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+html.dark ::-webkit-scrollbar-thumb:hover { background: #475569; }

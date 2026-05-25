@@ -756,7 +756,7 @@ function renderAssistantMessage(content) {
 
 .chat-eyebrow {
     margin: 0 0 7px;
-    color: #4338ca;
+    color: #0d9488;
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 0.11em;
@@ -764,14 +764,14 @@ function renderAssistantMessage(content) {
 
 .chat-title {
     margin: 0 0 8px;
-    color: #0f172a;
+    color: var(--text);
     font-size: 30px;
     line-height: 1.12;
 }
 
 .chat-subtitle {
     margin: 0;
-    color: #64748b;
+    color: var(--muted);
     font-size: 14px;
 }
 
@@ -780,9 +780,9 @@ function renderAssistantMessage(content) {
     align-items: center;
     gap: 8px;
     padding: 10px 13px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border);
     border-radius: 11px;
-    background: #ffffff;
+    background: var(--surface);
     color: #dc2626;
     cursor: pointer;
     font-weight: 650;
@@ -803,10 +803,10 @@ function renderAssistantMessage(content) {
     align-items: flex-start;
     gap: 12px;
     padding: 13px 15px;
-    border: 1px solid #c7d2fe;
     border-radius: 14px;
-    background: #eef2ff;
-    color: #312e81;
+    border: 1px solid #99f6e4; /* was #c7d2fe */
+    background: #f0fdf9;       /* was #eef2ff */
+    color: #134e4a;
 }
 
 .chat-security-icon {
@@ -816,7 +816,7 @@ function renderAssistantMessage(content) {
     width: 35px;
     height: 35px;
     border-radius: 10px;
-    background: #e0e7ff;
+    background: #ccfbf1;
 }
 
 .chat-security-icon svg {
@@ -838,9 +838,9 @@ function renderAssistantMessage(content) {
 
 .chat-shell {
     overflow: hidden;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border);
     border-radius: 18px;
-    background: #ffffff;
+    background: var(--surface);
 }
 
 .chat-thread {
@@ -848,7 +848,7 @@ function renderAssistantMessage(content) {
     min-height: 410px;
     overflow-y: auto;
     padding: 22px;
-    background: #f8fafc;
+    background: var(--background);
 }
 
 .chat-welcome {
@@ -864,8 +864,8 @@ function renderAssistantMessage(content) {
     height: 58px;
     margin: 0 auto 15px;
     border-radius: 17px;
-    color: #4338ca;
-    background: #eef2ff;
+    color: #0d9488;   /* was #4338ca */
+    background: #f0fdf9;
 }
 
 .chat-bot-avatar svg {
@@ -875,13 +875,13 @@ function renderAssistantMessage(content) {
 
 .chat-welcome h2 {
     margin: 0 0 8px;
-    color: #0f172a;
+    color: var(--text);
     font-size: 21px;
 }
 
 .chat-welcome p {
     margin: 0 auto 20px;
-    color: #64748b;
+    color: var(--muted);
     line-height: 1.55;
 }
 
@@ -893,19 +893,19 @@ function renderAssistantMessage(content) {
 
 .chat-suggestions button {
     padding: 12px 13px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border);
     border-radius: 12px;
-    background: #ffffff;
-    color: #334155;
+    background: var(--surface);
+    color: var(--text);
     cursor: pointer;
     text-align: left;
     font-size: 13px;
 }
 
 .chat-suggestions button:hover {
-    border-color: #c7d2fe;
-    background: #eef2ff;
-    color: #3730a3;
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary);    
 }
 
 .chat-message {
@@ -926,8 +926,8 @@ function renderAssistantMessage(content) {
     width: 35px;
     height: 35px;
     border-radius: 10px;
-    background: #e0e7ff;
-    color: #4338ca;
+    background: var(--primary-soft);
+    color: var(--primary);  
     font-size: 14px;
     font-weight: 700;
 }
@@ -938,7 +938,7 @@ function renderAssistantMessage(content) {
 }
 
 .chat-message.user .chat-avatar {
-    background: #4338ca;
+    background: #0d9488;
     color: #ffffff;
 }
 
@@ -952,10 +952,10 @@ function renderAssistantMessage(content) {
 
 .chat-bubble {
     padding: 12px 14px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border);
     border-radius: 15px 15px 15px 4px;
-    background: #ffffff;
-    color: #0f172a;
+    background: var(--surface);
+    color: var(--text);
     font-size: 14px;
     line-height: 1.65;
     text-align: left;
@@ -964,9 +964,10 @@ function renderAssistantMessage(content) {
 }
 
 .chat-message.user .chat-bubble {
-    border-color: #4338ca;
+    
     border-radius: 15px 15px 4px 15px;
-    background: #4338ca;
+    border-color: #0d9488; /* was #4338ca */
+    background: #0d9488; 
     color: #ffffff;
 }
 
@@ -994,7 +995,7 @@ function renderAssistantMessage(content) {
 
 .chat-rich-content :deep(p) {
     margin: 0 0 12px;
-    color: #334155;
+    color: var(--text);
     line-height: 1.7;
 }
 
@@ -1003,7 +1004,7 @@ function renderAssistantMessage(content) {
 }
 
 .chat-rich-content :deep(strong) {
-    color: #0f172a;
+    color: var(--text);
     font-weight: 700;
 }
 
@@ -1011,8 +1012,8 @@ function renderAssistantMessage(content) {
     display: inline-flex;
     padding: 2px 6px;
     border-radius: 6px;
-    background: #eef2ff;
-    color: #4338ca;
+    background: var(--primary-soft);
+    color: var(--primary);   
     font-family: Consolas, Monaco, monospace;
     font-size: 12px;
 }
@@ -1021,7 +1022,7 @@ function renderAssistantMessage(content) {
 .chat-rich-content :deep(h4),
 .chat-rich-content :deep(h5) {
     margin: 0 0 10px;
-    color: #0f172a;
+    color: var(--text);
     font-weight: 750;
 }
 
@@ -1041,7 +1042,7 @@ function renderAssistantMessage(content) {
 .chat-rich-content :deep(ol) {
     margin: 10px 0 14px;
     padding-left: 22px;
-    color: #334155;
+    color: var(--text);
 }
 
 .chat-rich-content :deep(li) {
@@ -1052,9 +1053,9 @@ function renderAssistantMessage(content) {
 .chat-rich-content :deep(.chat-table-container) {
     overflow-x: auto;
     margin: 14px 0;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border);
     border-radius: 13px;
-    background: #ffffff;
+    background: var(--surface);
 }
 
 .chat-rich-content :deep(.chat-result-table) {
@@ -1064,13 +1065,13 @@ function renderAssistantMessage(content) {
 }
 
 .chat-rich-content :deep(.chat-result-table thead) {
-    background: #f8fafc;
+    background: var(--background);
 }
 
 .chat-rich-content :deep(.chat-result-table th) {
     padding: 11px 13px;
-    border-bottom: 1px solid #e2e8f0;
-    color: #475569;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
     font-size: 11px;
     font-weight: 750;
     letter-spacing: 0.05em;
@@ -1081,8 +1082,8 @@ function renderAssistantMessage(content) {
 
 .chat-rich-content :deep(.chat-result-table td) {
     padding: 12px 13px;
-    border-bottom: 1px solid #eef2f7;
-    color: #334155;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
     vertical-align: top;
 }
 
@@ -1102,8 +1103,8 @@ function renderAssistantMessage(content) {
 
 .chat-composer {
     padding: 13px 15px 12px;
-    border-top: 1px solid #e2e8f0;
-    background: #ffffff;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
 }
 
 .chat-error {
@@ -1122,9 +1123,9 @@ function renderAssistantMessage(content) {
     max-width: 550px;
     margin-bottom: 10px;
     padding: 9px 10px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border);
     border-radius: 13px;
-    background: #f8fafc;
+    background: var(--background);
 }
 
 .attached-document-icon {
@@ -1134,8 +1135,8 @@ function renderAssistantMessage(content) {
     width: 37px;
     height: 37px;
     border-radius: 10px;
-    background: #eef2ff;
-    color: #4338ca;
+    background: var(--primary-soft);
+    color: var(--primary); 
 }
 
 .attached-document-icon svg {
@@ -1153,14 +1154,14 @@ function renderAssistantMessage(content) {
 
 .attached-document-info strong {
     overflow: hidden;
-    color: #0f172a;
+    color: var(--text);
     font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .attached-document-info span {
-    color: #64748b;
+    color: var(--muted);
     font-size: 11px;
 }
 
@@ -1205,14 +1206,14 @@ function renderAssistantMessage(content) {
     align-items: flex-end;
     gap: 10px;
     padding: 8px 9px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--border);
     border-radius: 20px;
-    background: #ffffff;
+    background: var(--background);
 }
 
 .composer-box:focus-within {
-    border-color: #4338ca;
-    box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1); 
 }
 
 .composer-plus {
@@ -1223,8 +1224,8 @@ function renderAssistantMessage(content) {
     height: 41px;
     border: none;
     border-radius: 999px;
-    background: #f1f5f9;
-    color: #475569;
+    background: var(--surface);
+    color: var(--muted);
     cursor: pointer;
 }
 
@@ -1258,7 +1259,7 @@ function renderAssistantMessage(content) {
     padding: 11px 4px;
     border: none;
     background: transparent;
-    color: #0f172a;
+    color: var(--text);
     font: inherit;
     font-size: 14px;
     outline: none;
@@ -1277,13 +1278,13 @@ function renderAssistantMessage(content) {
     height: 43px;
     border: none;
     border-radius: 999px;
-    background: #4338ca;
+    background: #0d9488;
     color: #ffffff;
     cursor: pointer;
 }
 
 .chat-send:hover {
-    background: #3730a3;
+    background: #0f766e;
 }
 
 .chat-send:disabled {
@@ -1329,5 +1330,23 @@ function renderAssistantMessage(content) {
     .attached-document {
         max-width: 100%;
     }
+}
+
+:global(html.dark) .chat-security {
+    border-color: #0d9488;
+    background: #134e4a;
+    color: #99f6e4;
+}
+
+:global(html.dark) .chat-security-icon {
+    background: rgba(13, 148, 136, 0.3);
+}
+
+:global(html.dark) .chat-thread {
+    scrollbar-color: #334155 transparent;
+}
+
+:global(html.dark) .chat-thread::-webkit-scrollbar-thumb {
+    background: #334155;
 }
 </style>

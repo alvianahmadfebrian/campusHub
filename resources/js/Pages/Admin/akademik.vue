@@ -299,21 +299,29 @@ function formatDate(value) {
 </template>
 
 <style scoped>
-.ak-page {
+    .ak-page {
     display: flex;
     flex-direction: column;
     gap: 20px;
+
+    --ak-bg: var(--bg-primary, #f8fafc);
+    --ak-card: var(--bg-card, #ffffff);
+    --ak-border: var(--border-color, #e2e8f0);
+    --ak-text: var(--text-primary, #0f172a);
+    --ak-text-soft: var(--text-secondary, #64748b);
+    --ak-input: var(--bg-input, #ffffff);
+
 }
 
 .ak-header h1 {
     margin: 4px 0 6px;
-    color: #0f172a;
+  color: var(--ak-text);
     font-size: 30px;
 }
 
 .ak-header p:not(.ak-eyebrow) {
     margin: 0;
-    color: #64748b;
+   color: var(--ak-text-soft);
 }
 
 .ak-eyebrow {
@@ -338,14 +346,14 @@ function formatDate(value) {
 
 .ak-card {
     padding: 18px;
-    border: 1px solid #e2e8f0;
+   border: 1px solid var(--ak-border);
     border-radius: 16px;
-    background: white;
+    background: var(--ak-card);
 }
 
 .ak-card h2 {
     margin: 0 0 15px;
-    color: #0f172a;
+   color: var(--ak-text);
     font-size: 17px;
 }
 
@@ -367,10 +375,13 @@ function formatDate(value) {
 .ak-card textarea {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--ak-border);
     border-radius: 10px;
     font: inherit;
     font-size: 13px;
+
+    background: var(--ak-input);
+    color: var(--ak-text);
 }
 
 .ak-card textarea {
@@ -419,7 +430,7 @@ function formatDate(value) {
 
 .ak-row small {
     display: block;
-    color: #64748b;
+   color: var(--ak-text-soft);
 }
 
 .section-head {
@@ -429,7 +440,7 @@ function formatDate(value) {
 }
 
 .section-head span {
-    color: #64748b;
+   color: var(--ak-text-soft);
     font-size: 12px;
 }
 
@@ -441,7 +452,7 @@ function formatDate(value) {
 .content-row p,
 .content-row small {
     margin: 4px 0 0;
-    color: #64748b;
+   color: var(--ak-text-soft);
     font-size: 12px;
 }
 

@@ -389,14 +389,14 @@ function announcementExcerpt(value) {
 
 .dashboard-header h1 {
     margin: 0 0 7px;
-    color: #0f172a;
+    color: var(--text);
     font-size: 29px;
     letter-spacing: -0.035em;
 }
 
 .dashboard-header p {
     margin: 0;
-    color: #64748b;
+    color: var(--muted);
     font-size: 14px;
 }
 
@@ -470,7 +470,7 @@ function announcementExcerpt(value) {
 
 .stat-card p {
     margin: 0 0 6px;
-    color: #475569;
+    color: var(--muted);
     font-size: 12px;
 }
 
@@ -500,9 +500,9 @@ function announcementExcerpt(value) {
 
 .dashboard-card {
     padding: 19px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border);
     border-radius: 17px;
-    background: #ffffff;
+    background: var(--surface);
 }
 
 .card-header {
@@ -515,7 +515,7 @@ function announcementExcerpt(value) {
 
 .card-header h2 {
     margin: 0;
-    color: #0f172a;
+    color: var(--text);
     font-size: 17px;
 }
 
@@ -536,7 +536,7 @@ function announcementExcerpt(value) {
     display: flex;
     gap: 12px;
     padding: 13px 0;
-    border-bottom: 1px solid #eef2f7;
+    border-bottom: 1px solid var(--border);
 }
 
 .announcement-item:last-child {
@@ -574,7 +574,7 @@ function announcementExcerpt(value) {
 
 .announcement-title strong {
     overflow: hidden;
-    color: #0f172a;
+    color: var(--text);
     font-size: 13px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -597,7 +597,7 @@ function announcementExcerpt(value) {
 
 .announcement-content p {
     margin: 0 0 6px;
-    color: #64748b;
+    color: var(--muted);
     font-size: 12px;
     line-height: 1.55;
 }
@@ -611,7 +611,7 @@ function announcementExcerpt(value) {
     display: flex;
     gap: 12px;
     padding: 11px 0;
-    border-bottom: 1px solid #eef2f7;
+    border-bottom: 1px solid var(--border);
 }
 
 .event-date {
@@ -621,8 +621,8 @@ function announcementExcerpt(value) {
     width: 49px;
     height: 52px;
     border-radius: 10px;
-    background: #ecfdf5;
-    color: #0f766e;
+    background: var(--primary-soft);
+    color: var(--primary);
 }
 
 .event-date span {
@@ -636,13 +636,13 @@ function announcementExcerpt(value) {
 }
 
 .event-content strong {
-    color: #0f172a;
+    color: var(--text);
     font-size: 13px;
 }
 
 .event-content p {
     margin: 4px 0;
-    color: #64748b;
+    color: var(--muted);
     font-size: 12px;
 }
 
@@ -687,13 +687,13 @@ function announcementExcerpt(value) {
 
 .help-card h3 {
     margin: 0 0 5px;
-    color: #0f172a;
+    color: var(--text);
     font-size: 14px;
 }
 
 .help-card p {
     margin: 0 0 8px;
-    color: #64748b;
+    color: var(--muted);
     font-size: 11px;
     line-height: 1.55;
 }
@@ -717,7 +717,7 @@ function announcementExcerpt(value) {
     align-items: center;
     gap: 11px;
     padding: 12px;
-    border: 1px solid #eef2f7;
+    border: 1px solid var(--border);
     border-radius: 13px;
 }
 
@@ -728,8 +728,8 @@ function announcementExcerpt(value) {
     width: 44px;
     height: 44px;
     border-radius: 11px;
-    background: #ecfdf5;
-    color: #0f9488;
+    background: var(--primary-soft);
+    color: var(--primary);
 }
 
 .material-preview svg {
@@ -746,7 +746,7 @@ function announcementExcerpt(value) {
     display: block;
     overflow: hidden;
     margin-bottom: 4px;
-    color: #0f172a;
+    color: var(--text);
     font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -756,7 +756,7 @@ function announcementExcerpt(value) {
 .material-info small {
     display: block;
     margin: 0;
-    color: #64748b;
+    color: var(--muted);
     font-size: 11px;
 }
 

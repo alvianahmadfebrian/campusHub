@@ -158,11 +158,11 @@ function formatDate(date) {
     width: 38px;
     height: 38px;
     border-radius: 10px;
-    border: 1px solid #dbe3ea;
-    background: #fff;
+    border: 1px solid var(--border);
+    background: var(--surface);
     cursor: pointer;
     font-size: 16px;
-    color: #64748b;
+    color: var(--muted);
 }
 
 .materi-view.active {
@@ -174,8 +174,8 @@ function formatDate(date) {
 /* FILTER */
 
 .materi-filter-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 16px;
     padding: 18px;
 }
@@ -192,19 +192,19 @@ function formatDate(date) {
     margin-bottom: 8px;
     font-size: 12px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--muted);
 }
 
 .materi-filter-grid input,
 .materi-filter-grid select {
     width: 100%;
     height: 44px;
-    border: 1px solid #dbe3ea;
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 0 14px;
     font-size: 14px;
-    background: #fff;
-    color: #0f172a;
+    background: var(--surface);
+    color: var(--text);
     outline: none;
 }
 
@@ -229,9 +229,9 @@ function formatDate(date) {
 .materi-empty {
     padding: 60px 20px;
     text-align: center;
-    border: 2px dashed #dbe3ea;
+    border: 2px dashed var(--border);
     border-radius: 18px;
-    background: #fff;
+    background: var(--surface);
 }
 
 .materi-empty h3 {
@@ -240,7 +240,7 @@ function formatDate(date) {
 }
 
 .materi-empty p {
-    color: #64748b;
+    color: var(--muted);
 }
 
 /* GRID */
@@ -254,8 +254,8 @@ function formatDate(date) {
 /* CARD */
 
 .materi-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 18px;
     padding: 18px;
     display: flex;
@@ -299,13 +299,13 @@ function formatDate(date) {
     font-size: 19px;
     line-height: 1.35;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text);
 }
 
 .materi-card-desc {
     font-size: 14px;
     line-height: 1.7;
-    color: #64748b;
+    color: var(--muted);
     flex: 1;
 }
 
@@ -315,9 +315,9 @@ function formatDate(date) {
     flex-wrap: wrap;
     gap: 8px;
     padding-top: 10px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--border);
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--muted);
 }
 
 .materi-card-footer {

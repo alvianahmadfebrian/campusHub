@@ -191,9 +191,9 @@ function eventStatus(item) {
 }
 
 .event-pill {
-    border: 1px solid #e2e8f0;
-    background: white;
-    color: #475569;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
     border-radius: 999px;
     padding: 8px 16px;
     font-size: 13px;
@@ -217,19 +217,19 @@ function eventStatus(item) {
 }
 
 .event-sort select {
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border);
     border-radius: 9px;
     padding: 8px 12px;
-    background: white;
-    color: #334155;
+    background: var(--surface);
+    color: var(--text);
     outline: none;
 }
 
 /* EMPTY */
 
 .event-empty {
-    background: white;
-    border: 2px dashed #dbe3ea;
+    background: var(--surface);
+    border: 2px dashed var(--border);
     border-radius: 16px;
     padding: 60px 20px;
     text-align: center;
@@ -241,7 +241,7 @@ function eventStatus(item) {
 }
 
 .event-empty p {
-    color: #64748b;
+    color: var(--muted);
 }
 
 /* GRID */
@@ -255,8 +255,8 @@ function eventStatus(item) {
 /* CARD */
 
 .event-list-card {
-    background: white;
-    border: 1px solid #e2e8f0;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 16px;
     overflow: hidden;
     transition: all .2s ease;
@@ -326,13 +326,13 @@ function eventStatus(item) {
     margin: 8px 0 12px;
     font-size: 18px;
     line-height: 1.35;
-    color: #0f172a;
+    color: var(--text);
 }
 
 .event-info {
     display: grid;
     gap: 6px;
-    color: #64748b;
+    color: var(--muted);
     font-size: 13px;
 }
 
@@ -342,7 +342,7 @@ function eventStatus(item) {
 
 .event-desc {
     margin: 12px 0 0;
-    color: #64748b;
+    color: var(--muted);
     font-size: 13px;
     line-height: 1.6;
 }
@@ -354,12 +354,12 @@ function eventStatus(item) {
     gap: 12px;
     margin-top: 16px;
     padding-top: 14px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--border);
 }
 
 .event-card-footer strong {
     font-size: 13px;
-    color: #0f172a;
+    color: var(--text);
 }
 
 .event-card-footer a,
@@ -382,10 +382,10 @@ function eventStatus(item) {
 .event-pagination button {
     min-width: 34px;
     height: 34px;
-    border: 1px solid #e2e8f0;
-    background: white;
-    border-radius: 9px;
-    color: #475569;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 999px;
+    color: var(--muted);
     cursor: pointer;
     font-weight: 600;
 }
