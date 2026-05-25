@@ -31,9 +31,7 @@ const props = defineProps({
 })
 
 const CurrentLayout = computed(() => {
-    return props.scope.role === 'admin'
-        ? AdminLayout
-        : AppLayout
+    return props.scope.role === 'admin' ? AdminLayout : AppLayout
 })
 
 const fileInput = ref(null)
@@ -74,9 +72,7 @@ const activeDocument = computed(() => {
 watch(
     () => props.documents.map((document) => document.id).join(','),
     () => {
-        if (!pendingUploadedDocument.value) {
-            return
-        }
+        if (!pendingUploadedDocument.value) return
 
         form.document_id = props.documents[0]?.id || ''
         pendingUploadedDocument.value = false
@@ -89,16 +85,11 @@ watch(
         await nextTick()
         scrollToBottom()
     },
-    {
-        immediate: true,
-    }
+    { immediate: true }
 )
 
 function scrollToBottom() {
-    if (!threadRef.value) {
-        return
-    }
-
+    if (!threadRef.value) return
     threadRef.value.scrollTop = threadRef.value.scrollHeight
 }
 
@@ -107,13 +98,10 @@ function useSuggestion(text) {
 }
 
 function sendMessage() {
-    if (!form.message.trim() || uploadForm.processing) {
-        return
-    }
+    if (!form.message.trim() || uploadForm.processing) return
 
     form.post('/chat/messages', {
         preserveScroll: true,
-
         onSuccess: () => {
             form.reset('message')
             form.document_id = ''
@@ -127,10 +115,7 @@ function openFilePicker() {
 
 function handleFileSelected(event) {
     const file = event.target.files?.[0]
-
-    if (!file) {
-        return
-    }
+    if (!file) return
 
     uploadForm.file = file
     pendingUploadedDocument.value = true
@@ -138,21 +123,13 @@ function handleFileSelected(event) {
     uploadForm.post('/chat/documents', {
         forceFormData: true,
         preserveScroll: true,
-
         onSuccess: () => {
             uploadForm.reset('file')
-
-            if (fileInput.value) {
-                fileInput.value.value = ''
-            }
+            if (fileInput.value) fileInput.value.value = ''
         },
-
         onError: () => {
             pendingUploadedDocument.value = false
-
-            if (fileInput.value) {
-                fileInput.value.value = ''
-            }
+            if (fileInput.value) fileInput.value.value = ''
         },
     })
 }
@@ -162,9 +139,7 @@ function detachDocument() {
 }
 
 function deleteDocument(document) {
-    if (!window.confirm(`Hapus dokumen "${document.nama_asli}" dari chatbot?`)) {
-        return
-    }
+    if (!window.confirm(`Hapus dokumen "${document.nama_asli}" dari chatbot?`)) return
 
     form.document_id = ''
 
@@ -174,9 +149,7 @@ function deleteDocument(document) {
 }
 
 function clearChat() {
-    if (!window.confirm('Hapus seluruh riwayat percakapan chatbot?')) {
-        return
-    }
+    if (!window.confirm('Hapus seluruh riwayat percakapan chatbot?')) return
 
     router.delete('/chat', {
         preserveScroll: true,
@@ -184,9 +157,7 @@ function clearChat() {
 }
 
 function formatTime(value) {
-    if (!value) {
-        return ''
-    }
+    if (!value) return ''
 
     return new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
@@ -199,15 +170,21 @@ function formatTime(value) {
 function formatSize(bytes) {
     const size = Number(bytes || 0)
 
-    if (size < 1024) {
-        return `${size} B`
-    }
-
-    if (size < 1024 * 1024) {
-        return `${(size / 1024).toFixed(1)} KB`
-    }
+    if (size < 1024) return `${size} B`
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
 
     return `${(size / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function cleanAssistantText(content) {
+    return String(content ?? '')
+        .replace(/\r\n?/g, '\n')
+        .replace(/```[a-zA-Z0-9_-]*\n?/g, '')
+        .replace(/```/g, '')
+        .replace(/^Berikut isi file\s+[^:]+:\s*/i, '')
+        .replace(/^Berikut adalah isi file\s+[^:]+:\s*/i, '')
+        .replace(/^Berikut kode\s+[^:]+:\s*/i, '')
+        .trim()
 }
 
 function escapeHtml(value) {
@@ -242,24 +219,51 @@ function isTableDivider(line) {
         .replace(/\|$/, '')
         .split('|')
 
-    return cells.length > 0 && cells.every((cell) => {
-        return /^\s*:?-{3,}:?\s*$/.test(cell)
-    })
+    return cells.length > 0 && cells.every((cell) => /^\s*:?-{3,}:?\s*$/.test(cell))
+}
+
+function looksLikeCode(line) {
+    const trimmed = line.trim()
+
+    return (
+        trimmed.startsWith('&lt;?php') ||
+        trimmed.startsWith('&lt;!DOCTYPE') ||
+        trimmed.startsWith('&lt;html') ||
+        trimmed.startsWith('&lt;head') ||
+        trimmed.startsWith('&lt;body') ||
+        trimmed.startsWith('&lt;style') ||
+        trimmed.startsWith('&lt;script') ||
+        trimmed.startsWith('&lt;template') ||
+        trimmed.startsWith('&lt;/') ||
+        trimmed.startsWith('//') ||
+        trimmed.startsWith('/*') ||
+        trimmed.startsWith('*') ||
+        trimmed.startsWith('*/') ||
+        trimmed.startsWith('import ') ||
+        trimmed.startsWith('export ') ||
+        trimmed.startsWith('const ') ||
+        trimmed.startsWith('let ') ||
+        trimmed.startsWith('var ') ||
+        trimmed.startsWith('function ') ||
+        trimmed.startsWith('if ') ||
+        trimmed.startsWith('return ') ||
+        trimmed.includes('{') ||
+        trimmed.includes('}') ||
+        trimmed.includes(';') ||
+        trimmed.includes('=&gt;')
+    )
 }
 
 function renderAssistantMessage(content) {
-    const lines = escapeHtml(content)
-        .replace(/\r\n?/g, '\n')
-        .split('\n')
+    const lines = escapeHtml(cleanAssistantText(content)).split('\n')
 
     let html = ''
     let index = 0
     let paragraph = []
+    let codeBlock = []
 
     function flushParagraph() {
-        if (paragraph.length === 0) {
-            return
-        }
+        if (paragraph.length === 0) return
 
         html += `<p>${paragraph
             .map((line) => renderInline(line.trim()))
@@ -268,14 +272,37 @@ function renderAssistantMessage(content) {
         paragraph = []
     }
 
+    function flushCode() {
+        if (codeBlock.length === 0) return
+
+        html += `<pre class="chat-code-block"><code>${codeBlock.join('\n')}</code></pre>`
+        codeBlock = []
+    }
+
     while (index < lines.length) {
         const line = lines[index]
         const trimmed = line.trim()
 
         if (!trimmed) {
             flushParagraph()
+
+            if (codeBlock.length > 0) {
+                codeBlock.push('')
+            }
+
             index++
             continue
+        }
+
+        if (looksLikeCode(line)) {
+            flushParagraph()
+            codeBlock.push(line)
+            index++
+            continue
+        }
+
+        if (codeBlock.length > 0) {
+            flushCode()
         }
 
         if (
@@ -342,17 +369,13 @@ function renderAssistantMessage(content) {
                 index < lines.length &&
                 /^[-*]\s+/.test(lines[index].trim())
             ) {
-                const item = lines[index]
-                    .trim()
-                    .replace(/^[-*]\s+/, '')
-
+                const item = lines[index].trim().replace(/^[-*]\s+/, '')
                 list += `<li>${renderInline(item)}</li>`
                 index++
             }
 
             list += '</ul>'
             html += list
-
             continue
         }
 
@@ -365,17 +388,13 @@ function renderAssistantMessage(content) {
                 index < lines.length &&
                 /^\d+\.\s+/.test(lines[index].trim())
             ) {
-                const item = lines[index]
-                    .trim()
-                    .replace(/^\d+\.\s+/, '')
-
+                const item = lines[index].trim().replace(/^\d+\.\s+/, '')
                 list += `<li>${renderInline(item)}</li>`
                 index++
             }
 
             list += '</ol>'
             html += list
-
             continue
         }
 
@@ -384,8 +403,9 @@ function renderAssistantMessage(content) {
     }
 
     flushParagraph()
+    flushCode()
 
-    return html
+    return html || '<p>Tidak ada jawaban.</p>'
 }
 </script>
 
@@ -420,18 +440,8 @@ function renderAssistantMessage(content) {
                     @click="clearChat"
                 >
                     <svg viewBox="0 0 24 24" fill="none">
-                        <path
-                            d="M3 6h18"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                        />
-                        <path
-                            d="M8 6V4h8v2M7 6l1 14h8l1-14"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linejoin="round"
-                        />
+                        <path d="M3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        <path d="M8 6V4h8v2M7 6l1 14h8l1-14" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
                     </svg>
 
                     Hapus Riwayat
@@ -441,19 +451,8 @@ function renderAssistantMessage(content) {
             <section class="chat-security">
                 <div class="chat-security-icon">
                     <svg viewBox="0 0 24 24" fill="none">
-                        <path
-                            d="M12 3 20 7v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linejoin="round"
-                        />
-                        <path
-                            d="m9 12 2 2 4-5"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        />
+                        <path d="M12 3 20 7v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                        <path d="m9 12 2 2 4-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </div>
 
@@ -478,20 +477,10 @@ function renderAssistantMessage(content) {
                     <div v-if="messages.length === 0" class="chat-welcome">
                         <div class="chat-bot-avatar">
                             <svg viewBox="0 0 24 24" fill="none">
-                                <path
-                                    d="M12 3v3M8 3h8M5 9a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9Z"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linejoin="round"
-                                />
+                                <path d="M12 3v3M8 3h8M5 9a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
                                 <circle cx="9" cy="12" r="1" fill="currentColor" />
                                 <circle cx="15" cy="12" r="1" fill="currentColor" />
-                                <path
-                                    d="M9 16h6"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linecap="round"
-                                />
+                                <path d="M9 16h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
                             </svg>
                         </div>
 
@@ -521,17 +510,8 @@ function renderAssistantMessage(content) {
                         :class="message.role"
                     >
                         <div class="chat-avatar">
-                            <svg
-                                v-if="message.role === 'assistant'"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                            >
-                                <path
-                                    d="M12 3v3M8 3h8M5 9a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9Z"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linejoin="round"
-                                />
+                            <svg v-if="message.role === 'assistant'" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 3v3M8 3h8M5 9a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
                                 <circle cx="9" cy="12" r="1" fill="currentColor" />
                                 <circle cx="15" cy="12" r="1" fill="currentColor" />
                             </svg>
@@ -551,18 +531,8 @@ function renderAssistantMessage(content) {
                             <div v-else class="chat-bubble">
                                 <div v-if="message.document_name" class="message-document">
                                     <svg viewBox="0 0 24 24" fill="none">
-                                        <path
-                                            d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"
-                                            stroke="currentColor"
-                                            stroke-width="1.8"
-                                            stroke-linejoin="round"
-                                        />
-                                        <path
-                                            d="M14 3v5h5"
-                                            stroke="currentColor"
-                                            stroke-width="1.8"
-                                            stroke-linejoin="round"
-                                        />
+                                        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                                        <path d="M14 3v5h5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
                                     </svg>
 
                                     {{ message.document_name }}
@@ -594,18 +564,8 @@ function renderAssistantMessage(content) {
                     <div v-if="activeDocument" class="attached-document">
                         <div class="attached-document-icon">
                             <svg viewBox="0 0 24 24" fill="none">
-                                <path
-                                    d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linejoin="round"
-                                />
-                                <path
-                                    d="M14 3v5h5"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linejoin="round"
-                                />
+                                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                                <path d="M14 3v5h5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
                             </svg>
                         </div>
 
@@ -619,41 +579,16 @@ function renderAssistantMessage(content) {
                             </span>
                         </div>
 
-                        <button
-                            type="button"
-                            class="attached-remove"
-                            title="Lepas lampiran"
-                            @click="detachDocument"
-                        >
+                        <button type="button" class="attached-remove" title="Lepas lampiran" @click="detachDocument">
                             <svg viewBox="0 0 24 24" fill="none">
-                                <path
-                                    d="M18 6 6 18M6 6l12 12"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                />
+                                <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                             </svg>
                         </button>
 
-                        <button
-                            type="button"
-                            class="attached-delete"
-                            title="Hapus dokumen"
-                            @click="deleteDocument(activeDocument)"
-                        >
+                        <button type="button" class="attached-delete" title="Hapus dokumen" @click="deleteDocument(activeDocument)">
                             <svg viewBox="0 0 24 24" fill="none">
-                                <path
-                                    d="M3 6h18"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linecap="round"
-                                />
-                                <path
-                                    d="M8 6V4h8v2M7 6l1 14h8l1-14"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linejoin="round"
-                                />
+                                <path d="M3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                                <path d="M8 6V4h8v2M7 6l1 14h8l1-14" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
                             </svg>
                         </button>
                     </div>
@@ -666,26 +601,12 @@ function renderAssistantMessage(content) {
                             title="Lampirkan dokumen"
                             @click="openFilePicker"
                         >
-                            <svg
-                                v-if="!uploadForm.processing"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                            >
-                                <path
-                                    d="M12 5v14M5 12h14"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                />
+                            <svg v-if="!uploadForm.processing" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                             </svg>
 
                             <svg v-else class="spinner" viewBox="0 0 24 24" fill="none">
-                                <path
-                                    d="M12 3a9 9 0 1 1-6.364 2.636"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                />
+                                <path d="M12 3a9 9 0 1 1-6.364 2.636" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                             </svg>
                         </button>
 
@@ -715,18 +636,8 @@ function renderAssistantMessage(content) {
                             title="Kirim pesan"
                         >
                             <svg viewBox="0 0 24 24" fill="none">
-                                <path
-                                    d="M22 2 11 13"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                />
-                                <path
-                                    d="m22 2-7 20-4-9-9-4 20-7Z"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linejoin="round"
-                                />
+                                <path d="M22 2 11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                <path d="m22 2-7 20-4-9-9-4 20-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
                             </svg>
                         </button>
                     </div>
@@ -804,8 +715,8 @@ function renderAssistantMessage(content) {
     gap: 12px;
     padding: 13px 15px;
     border-radius: 14px;
-    border: 1px solid #99f6e4; /* was #c7d2fe */
-    background: #f0fdf9;       /* was #eef2ff */
+    border: 1px solid #99f6e4;
+    background: #f0fdf9;
     color: #134e4a;
 }
 
@@ -864,7 +775,7 @@ function renderAssistantMessage(content) {
     height: 58px;
     margin: 0 auto 15px;
     border-radius: 17px;
-    color: #0d9488;   /* was #4338ca */
+    color: #0d9488;
     background: #f0fdf9;
 }
 
@@ -943,7 +854,7 @@ function renderAssistantMessage(content) {
 }
 
 .chat-bubble-wrap {
-    max-width: min(84%, 820px);
+    max-width: min(84%, 920px);
 }
 
 .chat-message.user .chat-bubble-wrap {
@@ -964,9 +875,8 @@ function renderAssistantMessage(content) {
 }
 
 .chat-message.user .chat-bubble {
-
     border-radius: 15px 15px 4px 15px;
-    border-color: #0d9488; /* was #4338ca */
+    border-color: #0d9488;
     background: #0d9488;
     color: #ffffff;
 }
@@ -989,14 +899,14 @@ function renderAssistantMessage(content) {
 }
 
 .chat-rich-content {
-    padding: 16px;
+    padding: 16px 18px;
     white-space: normal;
 }
 
 .chat-rich-content :deep(p) {
     margin: 0 0 12px;
     color: var(--text);
-    line-height: 1.7;
+    line-height: 1.75;
 }
 
 .chat-rich-content :deep(p:last-child) {
@@ -1012,10 +922,33 @@ function renderAssistantMessage(content) {
     display: inline-flex;
     padding: 2px 6px;
     border-radius: 6px;
-    background: var(--primary-soft);
-    color: var(--primary);
+    background: #eef6ff;
+    color: #0d9488;
     font-family: Consolas, Monaco, monospace;
     font-size: 12px;
+}
+
+.chat-rich-content :deep(.chat-code-block) {
+    overflow-x: auto;
+    margin: 12px 0;
+    padding: 14px 16px;
+    border: 1px solid #1e293b;
+    border-radius: 14px;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre;
+}
+
+.chat-rich-content :deep(.chat-code-block code) {
+    display: block;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    font-size: inherit;
 }
 
 .chat-rich-content :deep(h3),
@@ -1047,7 +980,7 @@ function renderAssistantMessage(content) {
 
 .chat-rich-content :deep(li) {
     margin-bottom: 7px;
-    line-height: 1.6;
+    line-height: 1.65;
 }
 
 .chat-rich-content :deep(.chat-table-container) {
