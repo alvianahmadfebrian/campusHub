@@ -1,6 +1,9 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
+import { useDarkMode } from '@/composables/useDarkMode'
+
+const { isDark, toggleDark } = useDarkMode()
 
 const page = usePage()
 const success = computed(() => page.props.flash?.success)
@@ -54,9 +57,13 @@ function submit() {
         <div class="login-right">
             <div class="login-form-wrap">
                 <div class="login-form-header">
-                    <h2>Selamat Datang</h2>
-                    <p>Silakan masuk menggunakan akun mahasiswa Anda.</p>
-                </div>
+    <button type="button" class="auth-theme-toggle" @click="toggleDark">
+        {{ isDark ? '☀️ Mode Terang' : '🌙 Mode Gelap' }}
+    </button>
+
+    <h2>Selamat Datang</h2>
+    <p>Silakan masuk menggunakan akun mahasiswa Anda.</p>
+</div>
 
                 <div v-if="success" class="flash-success">{{ success }}</div>
 
@@ -493,5 +500,88 @@ function submit() {
     .login-left-inner {
         padding: 28px 28px 0;
     }
+}
+/* ================= AUTH DARK MODE ================= */
+
+.auth-theme-toggle {
+    margin-bottom: 18px;
+    padding: 10px 14px;
+    border: 1px solid #dbe3ea;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #0f766e;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+:global(html.dark),
+:global(html.dark body) {
+    background: #020617 !important;
+}
+
+:global(html.dark) .login-shell,
+:global(html.dark) .reg-shell {
+    background: #020617 !important;
+}
+
+:global(html.dark) .login-right,
+:global(html.dark) .reg-right {
+    background: #020617 !important;
+}
+
+:global(html.dark) .login-form-wrap,
+:global(html.dark) .reg-form-wrap {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+:global(html.dark) .login-form-header h2,
+:global(html.dark) .reg-form-header h2,
+:global(html.dark) label {
+    color: #f8fafc !important;
+}
+
+:global(html.dark) .login-form-header p,
+:global(html.dark) .reg-form-header p,
+:global(html.dark) .rf-hint,
+:global(html.dark) .lf-footer a,
+:global(html.dark) .rf-login {
+    color: #94a3b8 !important;
+}
+
+:global(html.dark) input,
+:global(html.dark) select {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+:global(html.dark) input::placeholder {
+    color: #64748b !important;
+}
+
+:global(html.dark) .lf-input-wrap,
+:global(html.dark) .rf-input-wrap,
+:global(html.dark) .rf-select-wrap {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #94a3b8 !important;
+}
+
+:global(html.dark) .auth-theme-toggle {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #5eead4 !important;
+}
+
+:global(html.dark) .lf-divider::before,
+:global(html.dark) .lf-divider::after {
+    background: #334155 !important;
+}
+
+:global(html.dark) .lf-divider span {
+    background: #111827 !important;
+    color: #94a3b8 !important;
 }
 </style>

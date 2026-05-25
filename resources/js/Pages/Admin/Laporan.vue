@@ -110,10 +110,6 @@ function formatDate(value) {
                             <path d="M3 9h18M9 21V9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </div>
-                    <div class="lp-stat-body">
-                        <span class="lp-stat-label">Jadwal</span>
-                        <strong class="lp-stat-num">{{ stats.jadwal ?? 0 }}</strong>
-                    </div>
                 </div>
             </div>
 

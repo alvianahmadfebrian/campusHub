@@ -1,5 +1,8 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3'
+import { useDarkMode } from '@/composables/useDarkMode'
+
+const { isDark, toggleDark } = useDarkMode()
 
 const props = defineProps({
     jurusan: {
@@ -91,9 +94,10 @@ function submit() {
         <div class="reg-right">
             <div class="reg-form-wrap">
                 <div class="reg-form-header">
-                    <h2>Buat Akun Mahasiswa</h2>
-                    
-                </div>
+    
+
+    <h2>Buat Akun Mahasiswa</h2>
+</div>
 
                 <div v-if="props.jurusan.length === 0" class="reg-notice">
                     ⚠ Belum ada jurusan aktif. Hubungi admin agar menambahkan jurusan sebelum kamu mendaftar.
@@ -594,4 +598,5 @@ function submit() {
     .rf-row-2 { grid-template-columns: 1fr; }
     .reg-right { padding: 28px 20px; }
 }
+
 </style>

@@ -113,14 +113,14 @@ function cancelEdit() {
                         <div class="stat-ipk-row">
                             <div>
                                 <p class="stat-label">IPK Saat Ini</p>
-                                <p class="stat-ipk">—</p>
+                                <p class="stat-ipk">3.57</p>
                             </div>
                             <div class="stat-grade-badge">—</div>
                         </div>
 
                         <div class="stat-row">
                             <div class="stat-box">
-                                <p class="stat-box-val">—</p>
+                                <p class="stat-box-val">144</p>
                                 <p class="stat-box-label">SKS Lulus</p>
                             </div>
                             <div class="stat-box">

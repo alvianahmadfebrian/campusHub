@@ -119,14 +119,6 @@ function announcementExcerpt(value) {
                         Berikut adalah ringkasan aktivitas akademik Anda hari ini.
                     </p>
                 </div>
-
-                <Link href="/profile" class="profile-button">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" />
-                        <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                    </svg>
-                    Edit Profil
-                </Link>
             </header>
 
             <!-- STATISTICS -->
@@ -503,6 +495,7 @@ function announcementExcerpt(value) {
     border: 1px solid var(--border);
     border-radius: 17px;
     background: var(--surface);
+    color: var(--text);
 }
 
 .card-header {
@@ -841,5 +834,56 @@ function announcementExcerpt(value) {
         align-items: flex-start;
         flex-direction: column;
     }
+}
+html.dark .dashboard-card,
+html.dark .material-item {
+    background: #111827 !important;
+    border-color: #334155 !important;
+}
+
+html.dark .dashboard-header h1,
+html.dark .card-header h2,
+html.dark .announcement-title strong,
+html.dark .event-content strong,
+html.dark .material-info strong {
+    color: #f8fafc !important;
+}
+
+html.dark .dashboard-header p,
+html.dark .empty-message,
+html.dark .announcement-content p,
+html.dark .announcement-content small,
+html.dark .event-content p,
+html.dark .event-content small,
+html.dark .material-info p,
+html.dark .material-info small {
+    color: #94a3b8 !important;
+}
+
+html.dark .announcement-item,
+html.dark .event-item,
+html.dark .material-item {
+    border-color: #334155 !important;
+}
+
+html.dark .help-card {
+    background: #134e4a !important;
+    border-color: #0d9488 !important;
+}
+
+html.dark .stat-card.announcement {
+    background: #172554 !important;
+}
+
+html.dark .stat-card.material {
+    background: #064e3b !important;
+}
+
+html.dark .stat-card.event {
+    background: #431407 !important;
+}
+
+html.dark .stat-card.profile {
+    background: #2e1065 !important;
 }
 </style>

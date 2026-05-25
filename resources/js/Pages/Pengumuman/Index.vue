@@ -70,7 +70,6 @@ function targetLabel(item) {
 // ── Badge color ──
 const badgeColor = {
     'Ujian': 'red',
-    'Jadwal': 'blue',
     'Akademik': 'green',
     'Umum': 'gray',
 }

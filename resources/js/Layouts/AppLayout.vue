@@ -186,6 +186,7 @@ onBeforeUnmount(() => {
                     Chatbot
                 </Link>
             </nav>
+            
 
             <!-- FOOTER -->
             <div class="sidebar-footer">
@@ -264,11 +265,12 @@ onBeforeUnmount(() => {
                         </svg>
                     </button>
 
-                    <button type="button" class="icon-button settings-button" title="Pengaturan">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" />
-                            <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    <button type="button" class="admin-icon-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                         </svg>
+                        <span class="admin-notif-dot"></span>
                     </button>
 
                     <div class="user-pill">

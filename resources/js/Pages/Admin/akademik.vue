@@ -467,4 +467,5 @@ function formatDate(value) {
         grid-template-columns: 1fr;
     }
 }
+
 </style>
