@@ -501,7 +501,7 @@ function submit() {
         padding: 28px 28px 0;
     }
 }
-/* ================= AUTH DARK MODE ================= */
+/* Dark mode untuk auth ditangani secara terpusat di app.css */
 
 .auth-theme-toggle {
     margin-bottom: 18px;
@@ -512,76 +512,6 @@ function submit() {
     color: #0f766e;
     font-weight: 700;
     cursor: pointer;
-}
-
-:global(html.dark),
-:global(html.dark body) {
-    background: #020617 !important;
-}
-
-:global(html.dark) .login-shell,
-:global(html.dark) .reg-shell {
-    background: #020617 !important;
-}
-
-:global(html.dark) .login-right,
-:global(html.dark) .reg-right {
-    background: #020617 !important;
-}
-
-:global(html.dark) .login-form-wrap,
-:global(html.dark) .reg-form-wrap {
-    background: #111827 !important;
-    border-color: #334155 !important;
-    color: #f8fafc !important;
-}
-
-:global(html.dark) .login-form-header h2,
-:global(html.dark) .reg-form-header h2,
-:global(html.dark) label {
-    color: #f8fafc !important;
-}
-
-:global(html.dark) .login-form-header p,
-:global(html.dark) .reg-form-header p,
-:global(html.dark) .rf-hint,
-:global(html.dark) .lf-footer a,
-:global(html.dark) .rf-login {
-    color: #94a3b8 !important;
-}
-
-:global(html.dark) input,
-:global(html.dark) select {
-    background: #0f172a !important;
-    border-color: #334155 !important;
-    color: #f8fafc !important;
-}
-
-:global(html.dark) input::placeholder {
-    color: #64748b !important;
-}
-
-:global(html.dark) .lf-input-wrap,
-:global(html.dark) .rf-input-wrap,
-:global(html.dark) .rf-select-wrap {
-    background: #0f172a !important;
-    border-color: #334155 !important;
-    color: #94a3b8 !important;
-}
-
-:global(html.dark) .auth-theme-toggle {
-    background: #1e293b !important;
-    border-color: #334155 !important;
-    color: #5eead4 !important;
-}
-
-:global(html.dark) .lf-divider::before,
-:global(html.dark) .lf-divider::after {
-    background: #334155 !important;
-}
-
-:global(html.dark) .lf-divider span {
-    background: #111827 !important;
-    color: #94a3b8 !important;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 </style>

@@ -3018,133 +3018,128 @@ html.dark body {
     color: #f8fafc !important;
 }
 
-html.dark [class*="login"],
-html.dark [class*="register"],
-html.dark [class*="auth"] {
-    background-color: #020617 !important;
-    color: #f8fafc !important;
-}
+/* ======================================================
+   AUTH DARK MODE — scoped hanya ke sisi kanan (form),
+   TIDAK menyentuh panel kiri (hero/branding teal).
+   ====================================================== */
 
-html.dark [class*="card"],
-html.dark [class*="form"],
-html.dark [class*="box"],
-html.dark [class*="panel"] {
-    background-color: #111827 !important;
-    border-color: #334155 !important;
-    color: #f8fafc !important;
-}
-
-html.dark h1,
-html.dark h2,
-html.dark h3,
-html.dark label,
-html.dark strong {
-    color: #f8fafc !important;
-}
-
-html.dark p,
-html.dark span,
-html.dark small,
-html.dark a {
-    color: #94a3b8 !important;
-}
-
-html.dark input,
-html.dark select,
-html.dark textarea {
-    background: #0f172a !important;
-    border-color: #334155 !important;
-    color: #f8fafc !important;
-}
-
-html.dark input::placeholder {
-    color: #64748b !important;
-}
-
-html.dark button[type="submit"] {
-    background: #0d9488 !important;
-    color: white !important;
-}
-
-
-/* ================= REGISTER DARK MODE FIX ================= */
-
-html.dark .register-shell,
-html.dark .reg-shell,
-html.dark .register-page,
-html.dark .reg-page {
+/* Shell wrapper */
+html.dark .login-shell,
+html.dark .reg-shell {
     background: #020617 !important;
-    color: #f8fafc !important;
 }
 
-html.dark .register-card,
-html.dark .reg-card,
-html.dark .register-form,
-html.dark .reg-form,
-html.dark .register-form-wrap,
+/* Panel KANAN — area form */
+html.dark .login-right,
+html.dark .reg-right {
+    background: #0f172a !important;
+}
+
+/* Wrapper form — tidak perlu background berbeda, ikut parent */
+html.dark .login-form-wrap,
 html.dark .reg-form-wrap {
-    background: #111827 !important;
-    border-color: #334155 !important;
     color: #f8fafc !important;
 }
 
-html.dark .register-card h1,
-html.dark .register-card h2,
-html.dark .reg-card h1,
-html.dark .reg-card h2,
-html.dark .register-form h1,
-html.dark .register-form h2,
-html.dark .reg-form h1,
-html.dark .reg-form h2 {
+/* Heading & label di sisi kanan */
+html.dark .login-form-header h2,
+html.dark .reg-form-header h2 {
     color: #f8fafc !important;
 }
-
-html.dark .register-card p,
-html.dark .reg-card p,
-html.dark .register-form p,
-html.dark .reg-form p {
+html.dark .login-form-header p,
+html.dark .reg-form-header p {
     color: #94a3b8 !important;
 }
+html.dark .login-form label,
+html.dark .reg-form label,
+html.dark .rf-terms {
+    color: #cbd5e1 !important;
+}
 
-html.dark .register-card input,
-html.dark .register-card select,
-html.dark .reg-card input,
-html.dark .reg-card select,
-html.dark .register-form input,
-html.dark .register-form select,
+/* Input & select */
+html.dark .login-form input,
 html.dark .reg-form input,
-html.dark .reg-form select {
-    background: #0f172a !important;
+html.dark .reg-form select,
+html.dark .rf-select-wrap select {
+    background: #1e293b !important;
     border-color: #334155 !important;
     color: #f8fafc !important;
 }
-
-html.dark .register-card input::placeholder,
-html.dark .reg-card input::placeholder,
-html.dark .register-form input::placeholder,
+html.dark .login-form input::placeholder,
 html.dark .reg-form input::placeholder {
     color: #64748b !important;
 }
+html.dark .login-form input:focus,
+html.dark .reg-form input:focus,
+html.dark .reg-form select:focus {
+    border-color: #0d9488 !important;
+    background: #0f172a !important;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.18) !important;
+}
 
+/* Teks muted di form kanan */
+html.dark .lf-remember,
+html.dark .lf-register,
+html.dark .rf-login,
+html.dark .rf-hint {
+    color: #94a3b8 !important;
+}
+html.dark .lf-footer a {
+    color: #64748b !important;
+}
 
-/* Jangan dark mode-kan area gambar/hero register */
+/* Divider */
+html.dark .lf-divider::before,
+html.dark .lf-divider::after {
+    background: #334155 !important;
+}
+html.dark .lf-divider span {
+    color: #64748b !important;
+    background: transparent !important;
+}
 
-html.dark .register-left,
-html.dark .reg-left,
-html.dark .register-hero,
-html.dark .reg-hero,
-html.dark .register-image,
-html.dark .reg-image {
-    background-color: unset !important;
+/* Toggle button tema */
+html.dark .auth-theme-toggle {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #5eead4 !important;
+}
+
+/* Submit button */
+html.dark .lf-submit,
+html.dark .rf-submit {
+    background: #0d9488 !important;
+    color: #fff !important;
+}
+html.dark .lf-submit:hover:not(:disabled),
+html.dark .rf-submit:hover:not(:disabled) {
+    background: #0f766e !important;
+}
+
+/* Flash success */
+html.dark .flash-success {
+    background: #022c22 !important;
+    border-color: #065f46 !important;
+    color: #6ee7b7 !important;
+}
+
+/* reg-notice */
+html.dark .reg-notice {
+    background: #1c1407 !important;
+    border-color: #78350f !important;
+    color: #fcd34d !important;
+}
+
+/* Panel KIRI (hero teal) — jangan disentuh sama sekali */
+html.dark .login-left,
+html.dark .reg-left {
+    background: unset !important;
+    color: inherit !important;
+}
+html.dark .login-left *,
+html.dark .reg-left * {
     color: inherit !important;
 }
 
-html.dark .register-left img,
-html.dark .reg-left img,
-html.dark .register-hero img,
-html.dark .reg-hero img,
-html.dark .register-image img,
-html.dark .reg-image img {
-    filter: none !important;
-    opacity: 1 !important;
-}
+
+/* REGISTER DARK MODE — sudah digabung ke AUTH DARK MODE di atas */
