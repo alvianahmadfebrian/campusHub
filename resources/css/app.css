@@ -586,7 +586,7 @@ select {
     .grid-5 {
         grid-template-columns: 1fr;
     }
-    /* ================= PROFILE LIKE REFERENCE ================= */
+    /* === PROFILE LIKE REFERENCE === */
     .profile-page {
         max-width: 980px;
         margin: 0 auto;
@@ -763,7 +763,7 @@ select {
 }
 
 
-/* ================= APP LAYOUT SIDEBAR / TOPBAR ================= */
+/* === APP LAYOUT SIDEBAR / TOPBAR === */
 
 .sl-shell {
     display: grid;
@@ -1015,7 +1015,7 @@ select {
 }
 
 
-/* ================= DASHBOARD PAGE ================= */
+/* === DASHBOARD PAGE === */
 
 * {
     box-sizing: border-box;
@@ -1808,7 +1808,7 @@ select {
 }
 
 
-/* ================= PENGUMUMAN PAGE ================= */
+/* === PENGUMUMAN PAGE === */
 
 .peng-page {
     display: flex;
@@ -2212,18 +2212,18 @@ select {
 }
 
 
-/* ================= PROFILE EDIT PAGE ================= */
+/* === PROFILE EDIT PAGE === */
 
 .profile-page {
     padding: 0 0 48px;
 }
 
 
-/* HERO */
+/* HERO — light mode default (terang) */
 
 .profile-hero {
     position: relative;
-    background: #1a1a2e;
+    background: #ffffff;
     border-radius: 16px;
     overflow: hidden;
     margin-bottom: 28px;
@@ -2232,7 +2232,7 @@ select {
 .profile-hero-bg {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background: transparent;
 }
 
 .profile-hero-content {
@@ -2241,6 +2241,34 @@ select {
     align-items: flex-end;
     gap: 20px;
     padding: 100px 28px 24px;
+}
+
+/* Hero teks — light mode gelap agar terbaca */
+.profile-hero-info {
+    flex: 1;
+    color: #0f172a;
+}
+
+.profile-name {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.profile-sub {
+    margin: 0;
+    font-size: 13px;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.profile-hero-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 
@@ -2256,7 +2284,7 @@ select {
     width: 88px;
     height: 88px;
     border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.3);
+    border: 3px solid rgba(255, 255, 255, 0.6);
     object-fit: cover;
 }
 
@@ -2295,35 +2323,6 @@ select {
 }
 
 
-/* Hero info */
-
-.profile-hero-info {
-    flex: 1;
-    color: #fff;
-}
-
-.profile-name {
-    margin: 0 0 4px;
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.profile-sub {
-    margin: 0;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.65);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.profile-hero-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-
 /* Buttons */
 
 .ph-btn {
@@ -2353,14 +2352,15 @@ select {
     background: var(--primary-hover);
 }
 
+/* Ghost button — light mode pakai warna gelap agar terbaca */
 .ph-btn-ghost {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(15, 23, 42, 0.08);
+    color: #0f172a;
+    border: 1px solid rgba(15, 23, 42, 0.15);
 }
 
 .ph-btn-ghost:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(15, 23, 42, 0.15);
 }
 
 .ph-btn-outline-sm {
@@ -2591,11 +2591,12 @@ select {
     gap: 16px;
 }
 
+/* Sertif icon — light mode pakai primary, bukan hardcoded gelap */
 .sertif-icon {
     width: 48px;
     height: 48px;
     flex-shrink: 0;
-    background: #1a1a2e;
+    background: var(--primary);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -2619,7 +2620,7 @@ select {
 }
 
 
-/* ================= FINAL RESPONSIVE OVERRIDES ================= */
+/* === FINAL RESPONSIVE OVERRIDES === */
 
 html {
     scroll-behavior: smooth;
@@ -2690,19 +2691,20 @@ img {
 }
 
 
-/* ===============================================================
-   DARK MODE — tambahkan di bagian PALING BAWAH app.css
-   =============================================================== */
+/* 
+   DARK MODE — bagian PALING BAWAH app.css
+    */
 
 
 /* Transisi halus saat ganti mode */
+
 
 html {
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 
-/* ================= STUDENT DARK MODE FIX ================= */
+/* === STUDENT DARK MODE FIX === */
 
 html.dark,
 html.dark body {
@@ -2918,6 +2920,48 @@ html.dark .upload-box {
 }
 
 
+
+html.dark .drive-item:hover {
+    background: #1e293b;
+    border-color: #334155;
+
+
+/* === PROFILE HERO DARK MODE === */
+
+/* Dark mode — hero gelap seperti sebelumnya */
+html.dark .profile-hero,
+html.dark .profile-hero-bg {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%) !important;
+}
+
+/* Teks hero jadi terang di dark mode */
+html.dark .profile-hero-info,
+html.dark .profile-name {
+    color: #f8fafc !important;
+}
+
+html.dark .profile-sub {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* Ghost button jadi transparan putih di dark mode */
+html.dark .ph-btn-ghost {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #fff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+html.dark .ph-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.22) !important;
+}
+
+/* Sertif icon dark */
+html.dark .sertif-icon {
+    background: #1a1a2e !important;
+}
+
+
+
 /* Chatbot area */
 
 html.dark .chat-container,
@@ -2929,6 +2973,9 @@ html.dark .chat-input-box {
     background: #111827 !important;
     border-color: #334155 !important;
     color: #f8fafc !important;
+
+
+
 }
 
 
@@ -2953,7 +3000,16 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 }
 
 
-/* ================= DASHBOARD DARK FIX ================= */
+
+
+/* ── SCROLLBAR (opsional, bagus untuk dark mode) ── */
+html.dark ::-webkit-scrollbar { width: 6px; height: 6px; }
+html.dark ::-webkit-scrollbar-track { background: #1e293b; }
+html.dark ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+html.dark ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+
+/* === DASHBOARD DARK FIX === */
 
 html.dark .db-card,
 html.dark .dashboard-panel,
@@ -3010,7 +3066,8 @@ html.dark .db-stat-label {
 }
 
 
-/* ================= AUTH DARK MODE FIX ================= */
+/* === AUTH DARK MODE FIX === */
+
 
 html.dark,
 html.dark body {
@@ -3018,45 +3075,65 @@ html.dark body {
     color: #f8fafc !important;
 }
 
-/* ======================================================
+/* =====
    AUTH DARK MODE — scoped hanya ke sisi kanan (form),
    TIDAK menyentuh panel kiri (hero/branding teal).
-   ====================================================== */
+   ===== */
 
 /* Shell wrapper */
+
+
 html.dark .login-shell,
 html.dark .reg-shell {
     background: #020617 !important;
 }
 
+
 /* Panel KANAN — area form */
+
+
 html.dark .login-right,
 html.dark .reg-right {
     background: #0f172a !important;
 }
 
+
 /* Wrapper form — tidak perlu background berbeda, ikut parent */
+
+
 html.dark .login-form-wrap,
 html.dark .reg-form-wrap {
     color: #f8fafc !important;
 }
 
+
 /* Heading & label di sisi kanan */
+
+
 html.dark .login-form-header h2,
 html.dark .reg-form-header h2 {
     color: #f8fafc !important;
 }
+
+
+
 html.dark .login-form-header p,
 html.dark .reg-form-header p {
     color: #94a3b8 !important;
 }
+
+
+
 html.dark .login-form label,
 html.dark .reg-form label,
 html.dark .rf-terms {
     color: #cbd5e1 !important;
 }
 
+
 /* Input & select */
+
+
 html.dark .login-form input,
 html.dark .reg-form input,
 html.dark .reg-form select,
@@ -3065,10 +3142,16 @@ html.dark .rf-select-wrap select {
     border-color: #334155 !important;
     color: #f8fafc !important;
 }
+
+
+
 html.dark .login-form input::placeholder,
 html.dark .reg-form input::placeholder {
     color: #64748b !important;
 }
+
+
+
 html.dark .login-form input:focus,
 html.dark .reg-form input:focus,
 html.dark .reg-form select:focus {
@@ -3077,65 +3160,96 @@ html.dark .reg-form select:focus {
     box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.18) !important;
 }
 
+
 /* Teks muted di form kanan */
+
+
 html.dark .lf-remember,
 html.dark .lf-register,
 html.dark .rf-login,
 html.dark .rf-hint {
     color: #94a3b8 !important;
 }
+
+
+
 html.dark .lf-footer a {
     color: #64748b !important;
 }
 
+
 /* Divider */
+
+
 html.dark .lf-divider::before,
 html.dark .lf-divider::after {
     background: #334155 !important;
 }
+
+
+
 html.dark .lf-divider span {
     color: #64748b !important;
     background: transparent !important;
 }
 
+
 /* Toggle button tema */
+
+
 html.dark .auth-theme-toggle {
     background: #1e293b !important;
     border-color: #334155 !important;
     color: #5eead4 !important;
 }
 
+
 /* Submit button */
+
+
 html.dark .lf-submit,
 html.dark .rf-submit {
     background: #0d9488 !important;
     color: #fff !important;
 }
+
+
+
 html.dark .lf-submit:hover:not(:disabled),
 html.dark .rf-submit:hover:not(:disabled) {
     background: #0f766e !important;
 }
 
+
 /* Flash success */
+
+
 html.dark .flash-success {
     background: #022c22 !important;
     border-color: #065f46 !important;
     color: #6ee7b7 !important;
 }
 
+
 /* reg-notice */
+
+
 html.dark .reg-notice {
     background: #1c1407 !important;
     border-color: #78350f !important;
     color: #fcd34d !important;
 }
 
+
 /* Panel KIRI (hero teal) — jangan disentuh sama sekali */
+
+
 html.dark .login-left,
 html.dark .reg-left {
     background: unset !important;
     color: inherit !important;
 }
+
 html.dark .login-left *,
 html.dark .reg-left * {
     color: inherit !important;
@@ -3143,3 +3257,10 @@ html.dark .reg-left * {
 
 
 /* REGISTER DARK MODE — sudah digabung ke AUTH DARK MODE di atas */
+
+
+html.dark .login-left *,
+html.dark .reg-left * {
+    color: inherit !important;
+}}
+
