@@ -138,7 +138,7 @@ function cancelEdit() {
             </p>
           </div>
 
-<<<<<<< Updated upstream
+
                     <div class="profile-hero-info">
                         <h1 class="profile-name">{{ profile?.nama || '—' }}</h1>
                         <p class="profile-sub">
@@ -348,9 +348,9 @@ function cancelEdit() {
               </button>
             </template>
           </div>
->>>>>>> Stashed changes
+
         </div>
-      </div>
+     
 
       <!-- BODY -->
       <div class="profile-body">
@@ -791,6 +791,6 @@ function cancelEdit() {
           </div>
         </div>
       </div>
-    </div>
+    
   </AppLayout>
 </template>

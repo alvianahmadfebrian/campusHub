@@ -2694,10 +2694,10 @@ img {
    DARK MODE — bagian PALING BAWAH app.css
    =============================================================== */
 
-<<<<<<< Updated upstream
+
 /* Transisi halus saat ganti mode */
-=======
->>>>>>> Stashed changes
+
+
 html {
     transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -2900,11 +2900,11 @@ html.dark .drive-item {
     border-color: #334155;
 }
 
-<<<<<<< Updated upstream
+
 html.dark .drive-item:hover {
     background: #1e293b;
     border-color: #334155;
-=======
+
 
 /* ================= PROFILE HERO DARK MODE ================= */
 
@@ -2952,7 +2952,7 @@ html.dark .chat-input-box {
     background: #111827 !important;
     border-color: #334155 !important;
     color: #f8fafc !important;
->>>>>>> Stashed changes
+
 }
 
 html.dark .drive-icon-button {
@@ -2989,13 +2989,13 @@ html.dark .student-flash {
 html.dark .drive-breadcrumb-link { color: #0d9488; }
 html.dark .drive-breadcrumb-divider { color: #475569; }
 
-<<<<<<< Updated upstream
+
 /* ── SCROLLBAR (opsional, bagus untuk dark mode) ── */
 html.dark ::-webkit-scrollbar { width: 6px; height: 6px; }
 html.dark ::-webkit-scrollbar-track { background: #1e293b; }
 html.dark ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 html.dark ::-webkit-scrollbar-thumb:hover { background: #475569; }
-=======
+
 /* ================= DASHBOARD DARK FIX ================= */
 
 html.dark .db-card,
@@ -3167,5 +3167,4 @@ html.dark .reg-left {
 html.dark .login-left *,
 html.dark .reg-left * {
     color: inherit !important;
-}
->>>>>>> Stashed changes
+}}
