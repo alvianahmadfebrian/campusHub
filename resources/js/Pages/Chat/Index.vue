@@ -1,6 +1,6 @@
 <script setup>
 import { Head, router, useForm } from '@inertiajs/vue3'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 
@@ -37,6 +37,14 @@ const CurrentLayout = computed(() => {
 const fileInput = ref(null)
 const threadRef = ref(null)
 const pendingUploadedDocument = ref(false)
+
+const isListening = ref(false)
+const isSpeaking = ref(false)
+const voiceSupported = ref(false)
+const recognitionRef = ref(null)
+const lastSpokenAssistantId = ref(null)
+
+const VOICE_REPLY_KEY = 'campushub_voice_reply_pending'
 
 const suggestions = computed(() => {
     if (props.scope.role === 'admin') {
@@ -84,9 +92,26 @@ watch(
     async () => {
         await nextTick()
         scrollToBottom()
+        speakLatestAssistantIfNeeded()
     },
     { immediate: true }
 )
+
+onMounted(() => {
+    document.body.classList.add('chat-fixed-body')
+    voiceSupported.value = Boolean(window.SpeechRecognition || window.webkitSpeechRecognition)
+    lastSpokenAssistantId.value = getLatestAssistantMessage()?.id ?? null
+
+    nextTick(() => {
+        scrollToBottom()
+    })
+})
+
+onBeforeUnmount(() => {
+    document.body.classList.remove('chat-fixed-body')
+    stopListening()
+    stopSpeaking()
+})
 
 function scrollToBottom() {
     if (!threadRef.value) return
@@ -97,14 +122,24 @@ function useSuggestion(text) {
     form.message = text
 }
 
-function sendMessage() {
-    if (!form.message.trim() || uploadForm.processing) return
+function sendMessage(fromVoice = false) {
+    if (!form.message.trim() || uploadForm.processing || form.processing) return
+
+    if (fromVoice) {
+        sessionStorage.setItem(VOICE_REPLY_KEY, '1')
+    } else {
+        sessionStorage.removeItem(VOICE_REPLY_KEY)
+        stopSpeaking()
+    }
 
     form.post('/chat/messages', {
         preserveScroll: true,
         onSuccess: () => {
             form.reset('message')
             form.document_id = ''
+        },
+        onError: () => {
+            sessionStorage.removeItem(VOICE_REPLY_KEY)
         },
     })
 }
@@ -151,6 +186,9 @@ function deleteDocument(document) {
 function clearChat() {
     if (!window.confirm('Hapus seluruh riwayat percakapan chatbot?')) return
 
+    stopSpeaking()
+    sessionStorage.removeItem(VOICE_REPLY_KEY)
+
     router.delete('/chat', {
         preserveScroll: true,
     })
@@ -175,6 +213,172 @@ function formatSize(bytes) {
 
     return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
+
+/**
+ * =========================
+ * VOICE CHAT
+ * =========================
+ */
+
+function startVoiceInput() {
+    if (!voiceSupported.value) {
+        alert('Browser ini belum mendukung voice input. Gunakan Chrome atau Edge terbaru.')
+        return
+    }
+
+    stopSpeaking()
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const recognition = new SpeechRecognition()
+
+    recognition.lang = 'id-ID'
+    recognition.interimResults = false
+    recognition.continuous = false
+    recognition.maxAlternatives = 1
+
+    recognition.onstart = () => {
+        isListening.value = true
+    }
+
+    recognition.onresult = async (event) => {
+        const transcript = event.results?.[0]?.[0]?.transcript || ''
+
+        if (!transcript.trim()) return
+
+        form.message = transcript.trim()
+
+        await nextTick()
+
+        sendMessage(true)
+    }
+
+    recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error)
+        isListening.value = false
+
+        if (event.error === 'not-allowed') {
+            alert('Izin mikrofon ditolak. Aktifkan permission microphone di browser.')
+        }
+    }
+
+    recognition.onend = () => {
+        isListening.value = false
+    }
+
+    recognitionRef.value = recognition
+    recognition.start()
+}
+
+function stopListening() {
+    if (recognitionRef.value) {
+        try {
+            recognitionRef.value.stop()
+        } catch (error) {
+            console.warn(error)
+        }
+    }
+
+    isListening.value = false
+}
+
+function toggleVoiceInput() {
+    if (isListening.value) {
+        stopListening()
+    } else {
+        startVoiceInput()
+    }
+}
+
+function getLatestAssistantMessage() {
+    return [...props.messages]
+        .reverse()
+        .find((message) => message.role === 'assistant') || null
+}
+
+function speakLatestAssistantIfNeeded() {
+    const shouldSpeak = sessionStorage.getItem(VOICE_REPLY_KEY) === '1'
+
+    if (!shouldSpeak) return
+
+    const latestAssistant = getLatestAssistantMessage()
+
+    if (!latestAssistant) return
+    if (latestAssistant.id === lastSpokenAssistantId.value) return
+
+    lastSpokenAssistantId.value = latestAssistant.id
+    sessionStorage.removeItem(VOICE_REPLY_KEY)
+
+    speakText(latestAssistant.content)
+}
+
+function speakText(content) {
+    if (!('speechSynthesis' in window)) {
+        return
+    }
+
+    const text = cleanSpeechText(content)
+
+    if (!text.trim()) return
+
+    stopSpeaking()
+
+    const utterance = new SpeechSynthesisUtterance(text)
+
+    utterance.lang = 'id-ID'
+    utterance.rate = 0.95
+    utterance.pitch = 1.05
+    utterance.volume = 1
+
+    const voices = window.speechSynthesis.getVoices()
+    const indonesiaVoice = voices.find((voice) => {
+        return voice.lang?.toLowerCase().startsWith('id')
+    })
+
+    const femaleLikeVoice = voices.find((voice) => {
+        const name = voice.name?.toLowerCase() || ''
+        return voice.lang?.toLowerCase().startsWith('id') &&
+            (name.includes('female') || name.includes('zira') || name.includes('ayu'))
+    })
+
+    utterance.voice = femaleLikeVoice || indonesiaVoice || null
+
+    utterance.onstart = () => {
+        isSpeaking.value = true
+    }
+
+    utterance.onend = () => {
+        isSpeaking.value = false
+    }
+
+    utterance.onerror = () => {
+        isSpeaking.value = false
+    }
+
+    window.speechSynthesis.speak(utterance)
+}
+
+function stopSpeaking() {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+    }
+
+    isSpeaking.value = false
+}
+
+function cleanSpeechText(content) {
+    return cleanAssistantText(content)
+        .replace(/[#*_`>|-]/g, ' ')
+        .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+        .replace(/https?:\/\/\S+/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+}
+
+/**
+ * =========================
+ * ASSISTANT MARKDOWN RENDERER
+ * =========================
+ */
 
 function cleanAssistantText(content) {
     return String(content ?? '')
@@ -433,19 +637,29 @@ function renderAssistantMessage(content) {
                     </p>
                 </div>
 
-                <button
-                    v-if="messages.length > 0"
-                    type="button"
-                    class="chat-clear"
-                    @click="clearChat"
-                >
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                        <path d="M8 6V4h8v2M7 6l1 14h8l1-14" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
-                    </svg>
+                <div class="chat-header-actions">
+                    <div v-if="isListening" class="voice-status listening">
+                        Mendengarkan...
+                    </div>
 
-                    Hapus Riwayat
-                </button>
+                    <div v-else-if="isSpeaking" class="voice-status speaking">
+                        AI berbicara...
+                    </div>
+
+                    <button
+                        v-if="messages.length > 0"
+                        type="button"
+                        class="chat-clear"
+                        @click="clearChat"
+                    >
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                            <path d="M8 6V4h8v2M7 6l1 14h8l1-14" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                        </svg>
+
+                        Hapus Riwayat
+                    </button>
+                </div>
             </header>
 
             <section class="chat-security">
@@ -548,7 +762,7 @@ function renderAssistantMessage(content) {
                     </article>
                 </div>
 
-                <form class="chat-composer" @submit.prevent="sendMessage">
+                <form class="chat-composer" @submit.prevent="sendMessage(false)">
                     <div v-if="form.errors.message" class="chat-error">
                         {{ form.errors.message }}
                     </div>
@@ -623,11 +837,32 @@ function renderAssistantMessage(content) {
                             class="chat-input"
                             :placeholder="activeDocument
                                 ? 'Tanyakan sesuatu tentang dokumen ini...'
-                                : 'Tanyakan sesuatu tentang CampusHub...'"
+                                : isListening
+                                    ? 'Saya sedang mendengarkan...'
+                                    : 'Tanyakan sesuatu tentang CampusHub...'"
                             rows="1"
                             maxlength="3000"
-                            @keydown.enter.exact.prevent="sendMessage"
+                            @keydown.enter.exact.prevent="sendMessage(false)"
                         ></textarea>
+
+                        <button
+                            type="button"
+                            class="voice-button"
+                            :class="{ listening: isListening, speaking: isSpeaking }"
+                            :disabled="form.processing || uploadForm.processing"
+                            :title="isListening ? 'Berhenti mendengarkan' : 'Gunakan voice chat'"
+                            @click="toggleVoiceInput"
+                        >
+                            <svg v-if="!isListening" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" stroke="currentColor" stroke-width="2" />
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                <path d="M12 19v3" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            </svg>
+
+                            <svg v-else viewBox="0 0 24 24" fill="none">
+                                <path d="M6 6h12v12H6V6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                            </svg>
+                        </button>
 
                         <button
                             class="chat-send"
@@ -644,6 +879,7 @@ function renderAssistantMessage(content) {
 
                     <p class="chat-note">
                         Klik + untuk upload {{ limits.documentTypes }} · Maks. {{ limits.documentMaxMb }} MB
+                        <span v-if="voiceSupported"> · Tekan mic untuk voice chat</span>
                     </p>
                 </form>
             </section>
@@ -655,18 +891,28 @@ function renderAssistantMessage(content) {
 .chat-page {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
+    height: calc(100dvh - 116px);
+    max-height: calc(100dvh - 116px);
+    overflow: hidden;
 }
 
 .chat-header {
     display: flex;
+    flex-shrink: 0;
     justify-content: space-between;
     align-items: flex-start;
     gap: 18px;
 }
 
+.chat-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .chat-eyebrow {
-    margin: 0 0 7px;
+    margin: 0 0 5px;
     color: #0d9488;
     font-size: 11px;
     font-weight: 800;
@@ -674,16 +920,33 @@ function renderAssistantMessage(content) {
 }
 
 .chat-title {
-    margin: 0 0 8px;
+    margin: 0 0 5px;
     color: var(--text);
-    font-size: 30px;
+    font-size: 24px;
     line-height: 1.12;
 }
 
 .chat-subtitle {
     margin: 0;
     color: var(--muted);
-    font-size: 14px;
+    font-size: 13px;
+}
+
+.voice-status {
+    padding: 9px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.voice-status.listening {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.voice-status.speaking {
+    background: #eff6ff;
+    color: #2563eb;
 }
 
 .chat-clear {
@@ -711,9 +974,10 @@ function renderAssistantMessage(content) {
 
 .chat-security {
     display: flex;
+    flex-shrink: 0;
     align-items: flex-start;
     gap: 12px;
-    padding: 13px 15px;
+    padding: 11px 14px;
     border-radius: 14px;
     border: 1px solid #99f6e4;
     background: #f0fdf9;
@@ -743,11 +1007,15 @@ function renderAssistantMessage(content) {
 
 .chat-security p {
     margin: 0;
-    font-size: 13px;
-    line-height: 1.55;
+    font-size: 12px;
+    line-height: 1.45;
 }
 
 .chat-shell {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
     overflow: hidden;
     border: 1px solid var(--border);
     border-radius: 18px;
@@ -755,11 +1023,29 @@ function renderAssistantMessage(content) {
 }
 
 .chat-thread {
-    height: calc(100vh - 390px);
-    min-height: 410px;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    padding: 22px;
+    padding: 18px 22px;
     background: var(--background);
+    overscroll-behavior: contain;
+}
+
+.chat-thread::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-thread::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-thread::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #cbd5e1;
+}
+
+.chat-thread::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
 .chat-welcome {
@@ -1035,7 +1321,8 @@ function renderAssistantMessage(content) {
 }
 
 .chat-composer {
-    padding: 13px 15px 12px;
+    flex-shrink: 0;
+    padding: 12px 15px 10px;
     border-top: 1px solid var(--border);
     background: var(--surface);
 }
@@ -1149,7 +1436,8 @@ function renderAssistantMessage(content) {
     box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
 }
 
-.composer-plus {
+.composer-plus,
+.voice-button {
     display: grid;
     place-items: center;
     flex-shrink: 0;
@@ -1162,17 +1450,31 @@ function renderAssistantMessage(content) {
     cursor: pointer;
 }
 
-.composer-plus:hover {
+.composer-plus:hover,
+.voice-button:hover {
     background: #e2e8f0;
     color: #0f172a;
 }
 
-.composer-plus:disabled {
+.voice-button.listening {
+    background: #dc2626;
+    color: #ffffff;
+    animation: pulseMic 1s infinite;
+}
+
+.voice-button.speaking {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.composer-plus:disabled,
+.voice-button:disabled {
     cursor: not-allowed;
     opacity: 0.6;
 }
 
-.composer-plus svg {
+.composer-plus svg,
+.voice-button svg {
     width: 21px;
     height: 21px;
 }
@@ -1187,16 +1489,16 @@ function renderAssistantMessage(content) {
 
 .chat-input {
     flex: 1;
-    min-height: 41px;
-    max-height: 130px;
-    padding: 11px 4px;
+    min-height: 39px;
+    max-height: 82px;
+    padding: 10px 4px;
     border: none;
     background: transparent;
     color: var(--text);
     font: inherit;
     font-size: 14px;
     outline: none;
-    resize: vertical;
+    resize: none;
 }
 
 .chat-input::placeholder {
@@ -1242,13 +1544,40 @@ function renderAssistantMessage(content) {
     }
 }
 
+@keyframes pulseMic {
+    0% {
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.35);
+    }
+
+    70% {
+        box-shadow: 0 0 0 9px rgba(220, 38, 38, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+    }
+}
+
 @media (max-width: 700px) {
+    .chat-page {
+        height: calc(100dvh - 86px);
+        max-height: calc(100dvh - 86px);
+        gap: 10px;
+    }
+
     .chat-header {
-        flex-direction: column;
+        display: none;
+    }
+
+    .chat-security {
+        padding: 10px 12px;
+    }
+
+    .chat-security p {
+        display: none;
     }
 
     .chat-thread {
-        min-height: 350px;
         padding: 14px;
     }
 
@@ -1263,6 +1592,14 @@ function renderAssistantMessage(content) {
     .attached-document {
         max-width: 100%;
     }
+
+    .chat-composer {
+        padding: 10px;
+    }
+}
+
+:global(body.chat-fixed-body) {
+    overflow: hidden;
 }
 
 :global(html.dark) .chat-security {

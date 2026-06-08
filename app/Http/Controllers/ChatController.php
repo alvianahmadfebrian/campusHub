@@ -21,11 +21,14 @@ class ChatController extends Controller
 {
     /**
      * Batas karakter dokumen yang dikirim ke Groq.
-     * Jangan terlalu besar karena llama-3.1-8b-instant punya limit token kecil.
+     * Jangan terlalu besar agar tidak kena limit token Groq.
      */
-    private int $documentContextLimit = 9000;
+    private int $documentContextLimit = 6000;
 
-    private int $historyMessageLimit = 800;
+    /**
+     * Batas karakter setiap pesan history.
+     */
+    private int $historyMessageLimit = 700;
 
     public function index(Request $request): Response
     {
@@ -48,7 +51,25 @@ class ChatController extends Controller
                 'cm.document_id',
                 DB::raw('coalesce(cm.attachment_name, cd.nama_asli) as document_name'),
             ])
-            ->reverse()
+            ->sort(function ($left, $right): int {
+                $timeOrder = strcmp(
+                    (string) $left->created_at,
+                    (string) $right->created_at
+                );
+
+                if ($timeOrder !== 0) {
+                    return $timeOrder;
+                }
+
+                /**
+                 * Kalau timestamp sama, user harus muncul dulu,
+                 * assistant muncul setelahnya.
+                 */
+                $leftOrder = $left->role === 'user' ? 0 : 1;
+                $rightOrder = $right->role === 'user' ? 0 : 1;
+
+                return $leftOrder <=> $rightOrder;
+            })
             ->values();
 
         $documents = DB::table('chat_documents')
@@ -66,6 +87,7 @@ class ChatController extends Controller
 
         return Inertia::render('Chat/Index', [
             'messages' => $messages,
+
             'documents' => $documents,
 
             'scope' => [
@@ -87,7 +109,11 @@ class ChatController extends Controller
         $maxMb = (int) config('services.groq.chat_document_max_mb', 10);
 
         $validated = $request->validate([
-            'file' => ['required', 'file', 'max:' . ($maxMb * 1024)],
+            'file' => [
+                'required',
+                'file',
+                'max:' . ($maxMb * 1024),
+            ],
         ]);
 
         $file = $validated['file'];
@@ -185,16 +211,44 @@ class ChatController extends Controller
             ->where('user_id', $userId)
             ->orderByDesc('created_at')
             ->limit(6)
-            ->get(['role', 'content', 'created_at'])
-            ->reverse()
+            ->get([
+                'role',
+                'content',
+                'created_at',
+            ])
+            ->sort(function ($left, $right): int {
+                $timeOrder = strcmp(
+                    (string) $left->created_at,
+                    (string) $right->created_at
+                );
+
+                if ($timeOrder !== 0) {
+                    return $timeOrder;
+                }
+
+                /**
+                 * Kalau timestamp sama, user dulu baru assistant.
+                 */
+                $leftOrder = $left->role === 'user' ? 0 : 1;
+                $rightOrder = $right->role === 'user' ? 0 : 1;
+
+                return $leftOrder <=> $rightOrder;
+            })
             ->values()
             ->map(fn ($message) => [
                 'role' => $message->role,
-                'content' => Str::limit((string) $message->content, $this->historyMessageLimit),
+                'content' => Str::limit(
+                    (string) $message->content,
+                    $this->historyMessageLimit,
+                    "\n\n[History dipotong.]"
+                ),
             ])
             ->all();
 
-        $currentUserMessage = $this->buildCurrentUserMessage($question, $document);
+        $currentUserMessage = $this->buildCurrentUserMessage(
+            $question,
+            $document
+        );
 
         $messages = array_merge(
             [[
@@ -225,8 +279,13 @@ class ChatController extends Controller
             "\n\n[Jawaban dipotong karena terlalu panjang.]"
         );
 
+        /**
+         * Pakai addSecond, bukan addMilliseconds.
+         * Beberapa database tidak menyimpan millisecond, jadi timestamp bisa sama
+         * dan urutan chat jadi kebalik.
+         */
         $userSentAt = now();
-        $assistantSentAt = now()->addMilliseconds(10);
+        $assistantSentAt = now()->addSecond();
 
         DB::transaction(function () use (
             $userId,
@@ -426,10 +485,6 @@ TEXT,
             );
         }
 
-        /**
-         * Pecah dokumen jadi chunk.
-         * 1800 karakter cukup aman untuk tiap potongan.
-         */
         $chunks = $this->splitTextIntoChunks($text, 1800);
 
         $scoredChunks = collect($chunks)
@@ -450,8 +505,7 @@ TEXT,
                 }
 
                 /**
-                 * Sedikit prioritas untuk bagian awal dokumen,
-                 * karena biasanya berisi judul, abstrak, ringkasan, atau pendahuluan.
+                 * Bagian awal dokumen sering berisi judul, abstrak, ringkasan.
                  */
                 if ($index === 0) {
                     $score += 2;
@@ -468,7 +522,7 @@ TEXT,
                 ];
             })
             ->sortByDesc('score')
-            ->take(5)
+            ->take(4)
             ->sortBy('index')
             ->values();
 
@@ -540,8 +594,8 @@ TEXT,
     private function extractKeywords(string $question): array
     {
         $question = mb_strtolower($question);
-
         $question = preg_replace('/[^\pL\pN\s]+/u', ' ', $question);
+
         $words = preg_split('/\s+/', trim((string) $question)) ?: [];
 
         $stopwords = [
@@ -583,6 +637,9 @@ TEXT,
             'singkat',
             'buat',
             'bikin',
+            'halo',
+            'hai',
+            'helo',
         ];
 
         $keywords = [];
