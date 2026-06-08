@@ -29,32 +29,35 @@ function logout() {
     router.post('/logout')
 }
 
-watch(() => page.url, () => {
-    closeSidebar()
-})
+watch(
+    () => page.url,
+    () => closeSidebar()
+)
 
 watch(sidebarOpen, (isOpen) => {
-    document.body.style.overflow = isOpen ? 'hidden' : ''
+    if (typeof document !== 'undefined') {
+        document.body.style.overflow = isOpen ? 'hidden' : ''
+    }
 })
 
 onBeforeUnmount(() => {
-    document.body.style.overflow = ''
+    if (typeof document !== 'undefined') {
+        document.body.style.overflow = ''
+    }
 })
 </script>
 
 <template>
     <div class="admin-shell">
-        <!-- MOBILE OVERLAY -->
         <transition name="sidebar-fade">
             <div
-                v-if="sidebarOpen"
+                v-show="sidebarOpen"
                 class="admin-sidebar-overlay"
                 aria-hidden="true"
                 @click="closeSidebar"
             ></div>
         </transition>
 
-        <!-- SIDEBAR -->
         <aside class="admin-sidebar" :class="{ 'mobile-open': sidebarOpen }">
             <button
                 type="button"
@@ -68,7 +71,6 @@ onBeforeUnmount(() => {
                 </svg>
             </button>
 
-            <!-- BRAND -->
             <div class="admin-brand">
                 <div class="admin-brand-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -83,152 +85,46 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <!-- NAVIGATION -->
             <nav class="admin-nav">
-                <Link
-                    href="/admin/dashboard"
-                    class="admin-nav-item"
-                    :class="{ active: isActive('/admin/dashboard') }"
-                    @click="closeSidebar"
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="7" height="7"/>
-                        <rect x="14" y="3" width="7" height="7"/>
-                        <rect x="14" y="14" width="7" height="7"/>
-                        <rect x="3" y="14" width="7" height="7"/>
-                    </svg>
+                <Link href="/admin/dashboard" class="admin-nav-item" :class="{ active: isActive('/admin/dashboard') }" @click="closeSidebar">
                     Dashboard
                 </Link>
 
-                <Link
-                    href="/admin/akademik"
-                    class="admin-nav-item"
-                    :class="{ active: isActive('/admin/akademik') }"
-                    @click="closeSidebar"
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-                    </svg>
+                <Link href="/admin/akademik" class="admin-nav-item" :class="{ active: isActive('/admin/akademik') }" @click="closeSidebar">
                     Akademik
                 </Link>
 
-                <Link
-                    href="/admin/konten"
-                    class="admin-nav-item"
-                    :class="{ active: isActive('/admin/konten') }"
-                    @click="closeSidebar"
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
-                    </svg>
+                <Link href="/admin/konten" class="admin-nav-item" :class="{ active: isActive('/admin/konten') }" @click="closeSidebar">
                     Manajemen Konten
                 </Link>
 
-                <Link
-                    href="/drive"
-                    class="admin-nav-item"
-                    :class="{ active: isActive('/drive') }"
-                    @click="closeSidebar"
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>
-                    </svg>
+                <Link href="/drive" class="admin-nav-item" :class="{ active: isActive('/drive') }" @click="closeSidebar">
                     Drive
                 </Link>
 
-                <Link
-                    href="/chat"
-                    class="admin-nav-item"
-                    :class="{ active: isActive('/chat') }"
-                    @click="closeSidebar"
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M4 4h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 3v-3H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
-                        <path d="M8 10h8"/>
-                        <path d="M8 14h5"/>
-                    </svg>
+                <Link href="/chat" class="admin-nav-item" :class="{ active: isActive('/chat') }" @click="closeSidebar">
                     Chatbot AI
                 </Link>
 
-                <Link
-                    href="/admin/laporan"
-                    class="admin-nav-item"
-                    :class="{ active: isActive('/admin/laporan') }"
-                    @click="closeSidebar"
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="20" x2="18" y2="10"/>
-                        <line x1="12" y1="20" x2="12" y2="4"/>
-                        <line x1="6" y1="20" x2="6" y2="14"/>
-                    </svg>
+                <Link href="/admin/laporan" class="admin-nav-item" :class="{ active: isActive('/admin/laporan') }" @click="closeSidebar">
                     Laporan
                 </Link>
 
-                <Link
-                    href="/admin/pengaturan"
-                    class="admin-nav-item"
-                    :class="{ active: isActive('/admin/pengaturan') }"
-                    @click="closeSidebar"
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                    </svg>
+                <Link href="/admin/pengaturan" class="admin-nav-item" :class="{ active: isActive('/admin/pengaturan') }" @click="closeSidebar">
                     Pengaturan
                 </Link>
             </nav>
 
-            <!-- FOOTER -->
             <div class="admin-sidebar-footer">
-
                 <button
                     type="button"
                     class="admin-footer-link admin-theme-toggle"
                     @click="toggleDark"
                 >
-                    <svg
-                        v-if="isDark"
-                        width="15"
-                        height="15"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <circle cx="12" cy="12" r="5"/>
-                    </svg>
-                    </button>
-
-
-                <!-- DARK MODE TOGGLE -->
-                <button type="button" class="admin-footer-link admin-theme-toggle" @click="toggleDark">
-                    <svg v-if="isDark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-
-                        <circle cx="12" cy="12" r="5"/>
-                    </svg>
-
-                    <svg
-                        v-else
-                        width="15"
-                        height="15"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                    </svg>
-
                     {{ isDark ? 'Mode Terang' : 'Mode Gelap' }}
                 </button>
-            
-                <Link href="/dashboard" class="admin-footer-link" @click="closeSidebar">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
 
+                <Link href="/dashboard" class="admin-footer-link" @click="closeSidebar">
                     Portal Mahasiswa
                 </Link>
 
@@ -242,106 +138,56 @@ onBeforeUnmount(() => {
             </div>
         </aside>
 
-        <!-- MAIN -->
         <div class="admin-main">
-            <!-- TOPBAR -->
             <header class="admin-topbar">
-    <!-- MOBILE MENU -->
-    <button
-        type="button"
-        class="admin-mobile-menu-btn"
-        aria-label="Buka menu navigasi"
-        :aria-expanded="sidebarOpen"
-        @click="openSidebar"
-    >
-        <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-        >
-            <path d="M4 6h16"/>
-            <path d="M4 12h16"/>
-            <path d="M4 18h16"/>
-        </svg>
-    </button>
+                <button
+                    type="button"
+                    class="admin-mobile-menu-btn"
+                    aria-label="Buka menu navigasi"
+                    :aria-expanded="sidebarOpen"
+                    @click="openSidebar"
+                >
+                    ☰
+                </button>
 
-    <!-- SPACER -->
-    <div class="admin-topbar-spacer"></div>
+                <div class="admin-topbar-spacer"></div>
 
-    <!-- RIGHT -->
-    <div class="admin-topbar-right">
-        <!-- DARK MODE -->
-        <button
-            type="button"
-            class="admin-icon-btn"
-            :title="isDark ? 'Mode Terang' : 'Mode Gelap'"
-            @click="toggleDark"
-        >
-            <!-- LIGHT -->
-            <svg
-                v-if="isDark"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <circle cx="12" cy="12" r="5"/>
-                <path
-                    d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-                    stroke-linecap="round"
-                />
-            </svg>
+                <div class="admin-topbar-right">
+                    <button
+                        type="button"
+                        class="admin-icon-btn"
+                        :title="isDark ? 'Mode Terang' : 'Mode Gelap'"
+                        @click="toggleDark"
+                    >
+                        {{ isDark ? '☀️' : '🌙' }}
+                    </button>
 
-            <!-- DARK -->
-            <svg
-                v-else
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <path
-                    d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-                    stroke-linejoin="round"
-                />
-            </svg>
-        </button>
+                    <div class="admin-user-pill">
+                        <div class="admin-user-avatar">
+                            <img
+                                v-if="user.avatar || user.avatar_url"
+                                :src="user.avatar || user.avatar_url"
+                                alt="avatar"
+                            />
 
-        <!-- USER -->
-        <div class="admin-user-pill">
-            <div class="admin-user-avatar">
-                <img
-                    v-if="user.avatar || user.avatar_url"
-                    :src="user.avatar || user.avatar_url"
-                    alt="avatar"
-                />
+                            <span v-else>
+                                {{ (user.nama || 'A').charAt(0).toUpperCase() }}
+                            </span>
+                        </div>
 
-                <span v-else>
-                    {{ (user.nama || 'A').charAt(0).toUpperCase() }}
-                </span>
-            </div>
+                        <div class="admin-user-meta">
+                            <p class="admin-user-name">
+                                {{ user.nama || 'Administrator' }}
+                            </p>
 
-            <div class="admin-user-meta">
-                <p class="admin-user-name">
-                    {{ user.nama || 'Administrator' }}
-                </p>
+                            <p class="admin-user-role">
+                                Admin CampusHub
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-                <p class="admin-user-role">
-                    Admin CampusHub
-                </p>
-            </div>
-        </div>
-    </div>
-</header>
-
-            <!-- FLASH -->
             <div
                 v-if="flash.success"
                 class="admin-flash"
@@ -350,7 +196,6 @@ onBeforeUnmount(() => {
                 {{ flash.success }}
             </div>
 
-            <!-- CONTENT -->
             <main class="admin-body">
                 <slot />
             </main>
@@ -370,7 +215,7 @@ onBeforeUnmount(() => {
 
 .sidebar-fade-enter-active,
 .sidebar-fade-leave-active {
-    transition: opacity .2s ease;
+    transition: opacity .18s ease;
 }
 
 .sidebar-fade-enter-from,
@@ -403,7 +248,6 @@ onBeforeUnmount(() => {
         z-index: 999;
         display: block;
         background: rgba(15,23,42,.38);
-        backdrop-filter: blur(2px);
     }
 
     .admin-sidebar {
@@ -416,7 +260,8 @@ onBeforeUnmount(() => {
         height: 100vh !important;
         overflow-y: auto;
         transform: translateX(-104%);
-        transition: transform .25s ease;
+        transition: transform .22s ease;
+        will-change: transform;
     }
 
     .admin-sidebar.mobile-open {
@@ -448,67 +293,68 @@ onBeforeUnmount(() => {
     }
 
     .admin-topbar {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
 
-.admin-topbar-spacer {
-    flex: 1;
-}
+    .admin-topbar-spacer {
+        flex: 1;
+    }
 
-.admin-topbar-right {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
+    .admin-topbar-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
 
-.admin-user-pill {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 12px 6px 6px;
-    border: 1px solid var(--admin-border, #e2e8f0);
-    border-radius: 14px;
-    background: var(--admin-surface, #ffffff);
-}
+    .admin-user-pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 12px 6px 6px;
+        border: 1px solid var(--admin-border, #e2e8f0);
+        border-radius: 14px;
+        background: var(--admin-surface, #ffffff);
+    }
 
-.admin-user-avatar {
-    display: grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    overflow: hidden;
-    border-radius: 999px;
-    background: #d1fae5;
-    color: #0f766e;
-    font-size: 14px;
-    font-weight: 700;
-    flex-shrink: 0;
-}
+    .admin-user-avatar {
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #d1fae5;
+        color: #0f766e;
+        font-size: 14px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
 
-.admin-user-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
+    .admin-user-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 
-.admin-user-meta {
-    line-height: 1.1;
-}
+    .admin-user-meta {
+        line-height: 1.1;
+    }
 
-.admin-user-name {
-    margin: 0;
-    color: var(--admin-text, #0f172a);
-    font-size: 13px;
-    font-weight: 700;
-}
+    .admin-user-name {
+        margin: 0;
+        color: var(--admin-text, #0f172a);
+        font-size: 13px;
+        font-weight: 700;
+    }
 
-.admin-user-role {
-    margin: 3px 0 0;
-    color: var(--admin-muted, #64748b);
-    font-size: 11px;
+    .admin-user-role {
+        margin: 3px 0 0;
+        color: var(--admin-muted, #64748b);
+        font-size: 11px;
+    }
 }
 
 @media (max-width: 560px) {
@@ -519,6 +365,5 @@ onBeforeUnmount(() => {
     .admin-user-pill {
         padding-right: 6px;
     }
-}
 }
 </style>

@@ -60,34 +60,22 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'openrouter' => [
-        'api_key' => env('OPENROUTER_API_KEY'),
+'groq' => [
+    'api_key' => env('GROQ_API_KEY'),
 
-        'endpoint' => env(
-            'OPENROUTER_ENDPOINT',
-            'https://openrouter.ai/api/v1/chat/completions'
-        ),
+    'endpoint' => env(
+        'GROQ_ENDPOINT',
+        'https://api.groq.com/openai/v1/chat/completions'
+    ),
 
-        'models' => array_values(array_filter(array_map(
-            'trim',
-            explode(',', env(
-                'OPENROUTER_MODELS',
-                'openai/gpt-oss-120b:free,openai/gpt-oss-20b:free,baidu/cobuddy:free'
-            ))
-        ))),
+    'model' => env(
+        'GROQ_MODEL',
+        'llama-3.1-8b-instant'
+    ),
 
-        'site_url' => env('OPENROUTER_SITE_URL', env('APP_URL')),
+    'max_tokens' => (int) env('GROQ_MAX_TOKENS', 1200),
 
-        'app_title' => env(
-            'OPENROUTER_APP_TITLE',
-            env('APP_NAME', 'CampusHub') . ' Chatbot'
-        ),
-
-        'max_tokens' => (int) env('OPENROUTER_MAX_TOKENS', 1200),
-
-        'pdf_engine' => env('OPENROUTER_PDF_ENGINE', 'cloudflare-ai'),
-
-        'chat_document_max_mb' => (int) env('CHAT_DOCUMENT_MAX_MB', 10),
-    ],
+    'chat_document_max_mb' => (int) env('CHAT_DOCUMENT_MAX_MB', 20),
+],
 
 ];
