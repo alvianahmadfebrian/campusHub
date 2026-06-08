@@ -17,14 +17,20 @@ class ProfileController extends Controller
     {
         $userId = $request->session()->get('supabase_user.id');
 
+        abort_unless($userId, 401);
+
         $profile = DB::table('profiles as p')
             ->leftJoin('jurusan as j', 'j.id', '=', 'p.jurusan_id')
             ->where('p.id', $userId)
-            ->select('p.*', DB::raw('coalesce(j.nama, p.jurusan) as jurusan_nama'))
+            ->select(
+                'p.*',
+                DB::raw('coalesce(j.nama, p.jurusan) as jurusan_nama')
+            )
             ->first();
 
         return Inertia::render('Profile/Edit', [
             'profile' => $profile,
+
             'jurusan' => DB::table('jurusan')
                 ->where(function ($query) use ($profile): void {
                     $query->where('aktif', true);
@@ -34,7 +40,12 @@ class ProfileController extends Controller
                     }
                 })
                 ->orderBy('nama')
-                ->get(['id', 'nama', 'kode', 'aktif']),
+                ->get([
+                    'id',
+                    'nama',
+                    'kode',
+                    'aktif',
+                ]),
         ]);
     }
 
@@ -42,32 +53,88 @@ class ProfileController extends Controller
     {
         $userId = $request->session()->get('supabase_user.id');
 
-        $currentProfile = DB::table('profiles')->where('id', $userId)->first();
+        abort_unless($userId, 401);
+
+        $currentProfile = DB::table('profiles')
+            ->where('id', $userId)
+            ->first();
+
         $jurusanWajib = $currentProfile?->role !== 'admin';
 
         $validated = $request->validate([
-            'nama' => ['required', 'string', 'max:120'],
-            'nim' => ['nullable', 'string', 'max:50'],
+            'nama' => [
+                'required',
+                'string',
+                'max:120',
+            ],
+
+            'nim' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+
             'jurusan_id' => [
                 $jurusanWajib ? 'required' : 'nullable',
+                'nullable',
                 'uuid',
-                Rule::exists('jurusan', 'id')->where(fn ($query) => $query->where('aktif', true)),
+                Rule::exists('jurusan', 'id')->where(
+                    fn ($query) => $query->where('aktif', true)
+                ),
             ],
-            'semester' => ['nullable', 'integer', 'min:1', 'max:14'],
-            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+
+            'semester' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:14',
+            ],
+
+            'email' => [
+                'nullable',
+                'email',
+                'max:150',
+            ],
+
+            'no_telfon' => [
+                'nullable',
+                'string',
+                'max:20',
+                'regex:/^[0-9]*$/',
+            ],
+
+            'alamat' => [
+                'nullable',
+                'string',
+                'max:500',
+            ],
+
+            'avatar' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048',
+            ],
+        ], [
+            'no_telfon.regex' => 'Nomor telepon hanya boleh berisi angka.',
         ]);
 
         $jurusan = filled($validated['jurusan_id'] ?? null)
-            ? DB::table('jurusan')->where('id', $validated['jurusan_id'])->where('aktif', true)->first()
+            ? DB::table('jurusan')
+                ->where('id', $validated['jurusan_id'])
+                ->where('aktif', true)
+                ->first()
             : null;
 
         if ($jurusanWajib && !$jurusan) {
             return back()
-                ->withErrors(['jurusan_id' => 'Jurusan tidak tersedia.'])
+                ->withErrors([
+                    'jurusan_id' => 'Jurusan tidak tersedia.',
+                ])
                 ->withInput();
         }
 
-        $avatarUrl = DB::table('profiles')->where('id', $userId)->value('avatar_url');
+        $avatarUrl = $currentProfile?->avatar_url;
 
         try {
             if ($request->hasFile('avatar')) {
@@ -79,7 +146,9 @@ class ProfileController extends Controller
             }
         } catch (Throwable $exception) {
             return back()
-                ->withErrors(['avatar' => 'Upload foto gagal: ' . $exception->getMessage()])
+                ->withErrors([
+                    'avatar' => 'Upload foto gagal: ' . $exception->getMessage(),
+                ])
                 ->withInput();
         }
 
@@ -88,6 +157,9 @@ class ProfileController extends Controller
             [
                 'nama' => $validated['nama'],
                 'nim' => $validated['nim'] ?? null,
+                'email' => $validated['email'] ?? null,
+                'no_telfon' => $validated['no_telfon'] ?? null,
+                'alamat' => $validated['alamat'] ?? null,
                 'jurusan_id' => $jurusan?->id,
                 'jurusan' => $jurusan?->nama,
                 'semester' => $validated['semester'] ?? null,
