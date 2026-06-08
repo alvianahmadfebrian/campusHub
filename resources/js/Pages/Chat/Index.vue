@@ -330,14 +330,22 @@ function speakText(content) {
     utterance.volume = 1
 
     const voices = window.speechSynthesis.getVoices()
-    const indonesiaVoice = voices.find((voice) => {
-        return voice.lang?.toLowerCase().startsWith('id')
-    })
 
     const femaleLikeVoice = voices.find((voice) => {
         const name = voice.name?.toLowerCase() || ''
-        return voice.lang?.toLowerCase().startsWith('id') &&
-            (name.includes('female') || name.includes('zira') || name.includes('ayu'))
+        const lang = voice.lang?.toLowerCase() || ''
+
+        return lang.startsWith('id') &&
+            (
+                name.includes('female') ||
+                name.includes('zira') ||
+                name.includes('ayu') ||
+                name.includes('google')
+            )
+    })
+
+    const indonesiaVoice = voices.find((voice) => {
+        return voice.lang?.toLowerCase().startsWith('id')
     })
 
     utterance.voice = femaleLikeVoice || indonesiaVoice || null
@@ -366,12 +374,119 @@ function stopSpeaking() {
 }
 
 function cleanSpeechText(content) {
-    return cleanAssistantText(content)
-        .replace(/[#*_`>|-]/g, ' ')
-        .replace(/\[(.*?)\]\(.*?\)/g, '$1')
-        .replace(/https?:\/\/\S+/g, '')
+    let text = String(content ?? '')
+
+    /**
+     * 1. Hapus code block markdown lengkap.
+     * Jadi AI tidak membacakan HTML, PHP, JS, CSS, JSON, dll.
+     */
+    text = text.replace(/```[\s\S]*?```/g, ' ')
+
+    /**
+     * 2. Hapus baris yang terlihat seperti kode.
+     */
+    text = text
+        .split('\n')
+        .filter((line) => {
+            const trimmed = line.trim()
+
+            if (!trimmed) return false
+
+            return !(
+                trimmed.startsWith('<') ||
+                trimmed.startsWith('</') ||
+                trimmed.startsWith('<?php') ||
+                trimmed.startsWith('<!DOCTYPE') ||
+                trimmed.startsWith('import ') ||
+                trimmed.startsWith('export ') ||
+                trimmed.startsWith('const ') ||
+                trimmed.startsWith('let ') ||
+                trimmed.startsWith('var ') ||
+                trimmed.startsWith('function ') ||
+                trimmed.startsWith('return ') ||
+                trimmed.startsWith('if ') ||
+                trimmed.startsWith('else') ||
+                trimmed.startsWith('for ') ||
+                trimmed.startsWith('while ') ||
+                trimmed.startsWith('//') ||
+                trimmed.startsWith('/*') ||
+                trimmed.startsWith('*') ||
+                trimmed.startsWith('{') ||
+                trimmed.startsWith('}') ||
+                trimmed.includes('=>') ||
+                trimmed.includes('</') ||
+                trimmed.includes('{') ||
+                trimmed.includes('}') ||
+                trimmed.includes(';') ||
+                trimmed.includes('=&gt;') ||
+                trimmed.includes('&lt;') ||
+                trimmed.includes('&gt;')
+            )
+        })
+        .join('\n')
+
+    /**
+     * 3. Hapus URL.
+     */
+    text = text.replace(/https?:\/\/\S+/g, ' ')
+
+    /**
+     * 4. Markdown link [teks](url) jadi teks saja.
+     */
+    text = text.replace(/\[(.*?)\]\(.*?\)/g, '$1')
+
+    /**
+     * 5. Kalau ada kalimat pengantar kode, ubah jadi kalimat pendek.
+     */
+    text = text
+        .replace(/berikut adalah contoh kode[\s\S]*$/i, 'Saya sudah mengirimkan contoh kode di chat.')
+        .replace(/berikut contoh kode[\s\S]*$/i, 'Saya sudah mengirimkan contoh kode di chat.')
+        .replace(/berikut kode[\s\S]*$/i, 'Saya sudah mengirimkan kode di chat.')
+        .replace(/kode di atas[\s\S]*$/i, 'Penjelasan kode sudah saya tampilkan di chat.')
+
+    /**
+     * 6. Hapus markdown symbol dan simbol teknis.
+     */
+    text = text.replace(/[#*_`>|~=\[\](){}<>\\/@$%^&+|]/g, ' ')
+
+    /**
+     * 7. Hapus emoji dan pictographic symbols.
+     */
+    text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, ' ')
+
+    /**
+     * 8. Hapus simbol tambahan yang sering ikut kebaca.
+     */
+    text = text.replace(/[•●■□◆◇★☆✓✔✕✖→←↑↓↔↕]/g, ' ')
+    text = text.replace(/[“”„‟]/g, '"')
+    text = text.replace(/[‘’‚‛]/g, "'")
+    text = text.replace(/[-]{2,}/g, ' ')
+    text = text.replace(/[.]{3,}/g, '.')
+    text = text.replace(/[,]{2,}/g, ',')
+
+    /**
+     * 9. Bersihkan spasi.
+     */
+    text = text
         .replace(/\s+/g, ' ')
         .trim()
+
+    /**
+     * 10. Kalau setelah dihapus ternyata kosong,
+     * jangan diam, kasih suara pendek.
+     */
+    if (!text) {
+        return 'Saya sudah mengirimkan jawabannya di chat. Silakan lihat teks yang tampil.'
+    }
+
+    /**
+     * 11. Batasi suara agar tidak terlalu panjang.
+     */
+    if (text.length > 900) {
+        text = text.slice(0, 900) + '. Jawaban lengkapnya sudah saya tampilkan di chat.'
+    }
+
+    return text
 }
 
 /**
