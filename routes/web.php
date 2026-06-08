@@ -41,6 +41,11 @@ Route::middleware('guest.supabase')->group(function () {
 
     Route::post('/register', [AuthController::class, 'register'])
         ->name('register.store');
+    Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])
+    ->name('password.request');
+
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])
+    ->name('password.email');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])

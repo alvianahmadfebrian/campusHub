@@ -71,6 +71,19 @@ class SupabaseAuthService
         }
     }
 
+    public function resetPassword(string $email): void
+    {
+        $response = $this->client()->post('/recover', [
+            'email' => $email,
+        ]);
+
+        if ($response->failed()) {
+            $payload = $response->json() ?? [];
+            $message = $payload['msg'] ?? $payload['message'] ?? 'Gagal mengirim email reset kata sandi.';
+            throw new RuntimeException($message);
+        }
+    }
+
     private function handleResponse(Response $response, string $fallback): array
     {
         $payload = $response->json() ?? [];

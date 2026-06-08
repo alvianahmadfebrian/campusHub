@@ -283,7 +283,7 @@ function fileType(name) {
     </AppLayout>
 </template>
 
-<style scoped>
+<style>
 .drive-page {
     --bg: #f8fbff;
     --text: #172033;
@@ -801,41 +801,185 @@ function fileType(name) {
     }
 }
 
-:global(html.dark) .drive-page {
+/* ============================================
+   DARK MODE — Drive/Index.vue
+   ============================================ */
+
+/* CSS variables */
+html.dark .drive-page {
     --bg: #0f172a;
-    --text: #f8fafc;
-    --muted: #94a3b8;
-    --line: #273549;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --line: #1e293b;
+    --teal: #2dd4bf;
 }
 
-:global(html.dark) .drive-shell {
+/* Outer page background */
+html.dark .drive-page {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+/* Inner shell card */
+html.dark .drive-shell {
     background: #111827;
+    box-shadow: 0 1px 0 rgba(0,0,0,.3);
 }
 
-:global(html.dark) .drive-search,
-:global(html.dark) .new-btn,
-:global(html.dark) .create-folder-card,
-:global(html.dark) .view-switch,
-:global(html.dark) .menu-popover {
+/* ---- Search bar ---- */
+html.dark .drive-search {
+    background: #1e293b;
+    color: #94a3b8;
+}
+html.dark .drive-search svg {
+    color: #64748b;
+}
+html.dark .drive-search input {
+    color: #e2e8f0;
+    background: transparent;
+}
+html.dark .drive-search input::placeholder {
+    color: #475569;
+}
+
+/* ---- Toolbar: heading + breadcrumb ---- */
+html.dark .drive-toolbar h1 {
+    color: #f1f5f9;
+}
+html.dark .drive-toolbar h1 span {
+    color: #64748b;
+}
+html.dark .breadcrumb {
+    color: #475569;
+}
+html.dark .breadcrumb a {
+    color: #94a3b8;
+}
+
+/* ---- View-switch buttons ---- */
+html.dark .view-switch {
+    background: #1e293b;
+    border-color: #273549;
+}
+html.dark .view-switch button {
+    color: #64748b;
+    border-left-color: #273549;
+    background: transparent;
+}
+html.dark .view-switch .active {
+    background: #134e4a;
+    color: #2dd4bf;
+}
+
+/* ---- Action buttons ---- */
+html.dark .new-btn {
+    background: #1e293b;
+    border-color: #273549;
+    color: #e2e8f0;
+    box-shadow: none;
+}
+html.dark .new-btn:hover {
+    background: #273549;
+    border-color: #334155;
+}
+html.dark .new-btn > span {
+    color: #2dd4bf;
+}
+html.dark .new-btn small {
+    color: #64748b;
+}
+html.dark .upload-btn {
+    background: #009f8b;
+    border-color: #009f8b;
+    color: #fff;
+}
+
+/* ---- Create folder card ---- */
+html.dark .create-folder-card {
+    background: #1e293b;
+    border-color: #273549;
+}
+html.dark .create-folder-card input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+html.dark .create-folder-card input::placeholder {
+    color: #475569;
+}
+
+/* ---- Table head ---- */
+html.dark .table-head {
+    color: #64748b;
+    border-top-color: #1e293b;
+    border-bottom-color: #1e293b;
+}
+html.dark .sort-arrow {
+    color: #475569;
+}
+
+/* ---- Table rows ---- */
+html.dark .table-row {
+    color: #94a3b8;
+    border-bottom-color: #1e293b;
+}
+html.dark .table-row:hover {
+    background: #1a2744;
+    box-shadow: inset 4px 0 0 rgba(45, 212, 191, .2);
+}
+
+/* File/folder name */
+html.dark .name-cell strong {
+    color: #e2e8f0;
+}
+
+/* Folder icon */
+html.dark .folder-icon {
+    color: #64748b;
+}
+
+/* Owner */
+html.dark .owner {
+    color: #64748b;
+}
+html.dark .avatar-mini {
+    background: #134e4a;
+    color: #2dd4bf;
+}
+
+/* ---- 3-dots menu button ---- */
+html.dark .dots-btn {
+    color: #64748b;
+}
+html.dark .dots-btn:hover {
     background: #1e293b;
     color: #e2e8f0;
 }
 
-:global(html.dark) .menu-popover button,
-:global(html.dark) .menu-popover a,
-:global(html.dark) .drive-toolbar h1,
-:global(html.dark) .name-cell strong,
-:global(html.dark) .empty-state h2 {
-    color: #f8fafc;
+/* ---- Popover menu ---- */
+html.dark .menu-popover {
+    background: #1e293b;
+    border-color: #273549;
+    box-shadow: 0 16px 40px rgba(0,0,0,.5);
+}
+html.dark .menu-popover button,
+html.dark .menu-popover a {
+    color: #e2e8f0;
+    background: transparent;
+}
+html.dark .menu-popover button:hover,
+html.dark .menu-popover a:hover {
+    background: #273549;
+}
+html.dark .menu-popover .danger {
+    color: #f87171;
 }
 
-:global(html.dark) .dots-btn {
+/* ---- Empty state ---- */
+html.dark .empty-state h2 {
     color: #e2e8f0;
 }
-
-:global(html.dark) .dots-btn:hover,
-:global(html.dark) .menu-popover button:hover,
-:global(html.dark) .menu-popover a:hover {
-    background: #334155;
+html.dark .empty-state p {
+    color: #475569;
 }
 </style>

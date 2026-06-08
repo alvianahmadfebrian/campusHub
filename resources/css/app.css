@@ -2924,6 +2924,7 @@ html.dark .upload-box {
 html.dark .drive-item:hover {
     background: #1e293b;
     border-color: #334155;
+}
 
 
 /* === PROFILE HERO DARK MODE === */
@@ -3262,5 +3263,189 @@ html.dark .reg-left * {
 html.dark .login-left *,
 html.dark .reg-left * {
     color: inherit !important;
-}}
+}
 
+
+
+/* ============================================================
+   DRIVE PAGE — DARK MODE OVERRIDE
+   Diperlukan karena rule global html.dark h1/span/input/strong
+   memakai !important dan akan menimpa style scoped di Vue.
+   ============================================================ */
+
+/* CSS variables & outer wrapper */
+html.dark .drive-page {
+    --bg:   #0f172a !important;
+    --text: #e2e8f0 !important;
+    --muted:#64748b !important;
+    --line: #1e293b !important;
+    --teal: #2dd4bf !important;
+    background: #0f172a !important;
+    color: #e2e8f0 !important;
+}
+
+/* Inner shell card */
+html.dark .drive-shell {
+    background: #111827 !important;
+    box-shadow: 0 1px 0 rgba(0,0,0,.3) !important;
+}
+
+/* Search bar */
+html.dark .drive-search {
+    background: #1e293b !important;
+    color: #94a3b8 !important;
+}
+html.dark .drive-search svg {
+    color: #64748b !important;
+}
+html.dark .drive-search input {
+    color: #e2e8f0 !important;
+    background: transparent !important;
+    border: none !important;
+}
+html.dark .drive-search input::placeholder {
+    color: #64748b !important;
+}
+
+/* Toolbar heading & breadcrumb */
+html.dark .drive-toolbar h1 {
+    color: #f1f5f9 !important;
+}
+html.dark .drive-toolbar h1 span {
+    color: #94a3b8 !important;
+}
+html.dark .breadcrumb {
+    color: #475569 !important;
+}
+html.dark .breadcrumb a {
+    color: #94a3b8 !important;
+}
+
+/* View switch buttons */
+html.dark .view-switch {
+    border-color: #334155 !important;
+    background: #1e293b !important;
+}
+html.dark .view-switch button {
+    background: transparent !important;
+    color: #64748b !important;
+    border-color: #334155 !important;
+}
+html.dark .view-switch .active {
+    background: #134e4a !important;
+    color: #2dd4bf !important;
+}
+
+/* New / Upload buttons */
+html.dark .new-btn {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+    box-shadow: none !important;
+}
+html.dark .new-btn:hover {
+    background: #273549 !important;
+}
+html.dark .new-btn > span {
+    color: #2dd4bf !important;
+}
+html.dark .new-btn small {
+    color: #64748b !important;
+}
+html.dark .upload-btn {
+    background: #0d9488 !important;
+    border-color: #0d9488 !important;
+    color: #fff !important;
+}
+
+/* Create folder card */
+html.dark .create-folder-card {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+html.dark .create-folder-card input {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+html.dark .create-folder-card input::placeholder {
+    color: #64748b !important;
+}
+
+/* Table header */
+html.dark .table-head {
+    border-color: #1e293b !important;
+    color: #64748b !important;
+}
+html.dark .sort-arrow {
+    color: #94a3b8 !important;
+}
+
+/* Table rows */
+html.dark .table-row {
+    border-color: #1e293b !important;
+    color: #94a3b8 !important;
+}
+html.dark .table-row:hover {
+    background: #1a2334 !important;
+    box-shadow: inset 4px 0 0 rgba(45,212,191,.14) !important;
+}
+
+/* File & folder name */
+html.dark .name-cell strong {
+    color: #e2e8f0 !important;
+}
+
+/* Folder icon */
+html.dark .folder-icon {
+    color: #94a3b8 !important;
+}
+
+/* Owner / avatar */
+html.dark .owner {
+    color: #64748b !important;
+}
+html.dark .avatar-mini {
+    background: #134e4a !important;
+    color: #2dd4bf !important;
+}
+
+/* Dots menu button */
+html.dark .dots-btn {
+    color: #64748b !important;
+    background: transparent !important;
+}
+html.dark .dots-btn:hover {
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
+}
+
+/* Popover menu */
+html.dark .menu-popover {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,.45) !important;
+}
+html.dark .menu-popover button,
+html.dark .menu-popover a {
+    color: #e2e8f0 !important;
+    background: transparent !important;
+}
+html.dark .menu-popover button:hover,
+html.dark .menu-popover a:hover {
+    background: #273549 !important;
+}
+html.dark .menu-popover .danger {
+    color: #f87171 !important;
+}
+
+/* Empty state */
+html.dark .empty-state h2 {
+    color: #e2e8f0 !important;
+}
+html.dark .empty-state p {
+    color: #475569 !important;
+}
+html.dark .empty-icon {
+    color: #1e293b !important;
+}

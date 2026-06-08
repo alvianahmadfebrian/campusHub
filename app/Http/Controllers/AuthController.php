@@ -174,4 +174,26 @@ class AuthController extends Controller
             ->route('login')
             ->with('success', 'Anda berhasil logout.');
     }
+
+    public function showForgotPassword(): Response
+    {
+        return Inertia::render('Auth/ForgotPassword');
+    }
+
+    public function sendResetLink(Request $request, SupabaseAuthService $auth): RedirectResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        try {
+            $auth->resetPassword($request->email);
+        } catch (Throwable $exception) {
+            return back()
+                ->withErrors(['email' => $exception->getMessage()])
+                ->withInput();
+        }
+
+        return back()->with('success', 'Link reset kata sandi telah dikirim ke email Anda.');
+    }
 }

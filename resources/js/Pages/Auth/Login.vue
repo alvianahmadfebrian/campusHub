@@ -122,7 +122,7 @@ function submit() {
                             <input type="checkbox" v-model="form.remember" />
                             <span>Ingat saya</span>
                         </label>
-                        <a href="#" class="lf-forgot">Lupa kata sandi?</a>
+                        <Link href="/forgot-password" class="lf-forgot">Lupa kata sandi?</Link>
                     </div>
 
                     <button type="submit" class="lf-submit" :disabled="form.processing">
@@ -496,7 +496,66 @@ function submit() {
         padding: 28px 28px 0;
     }
 }
-/* Dark mode untuk auth ditangani secara terpusat di app.css */
+
+/* ── DARK MODE (via :global agar menang atas scoped specificity) ── */
+:global(html.dark) .login-shell {
+    background: #020617;
+}
+
+:global(html.dark) .login-right {
+    background: #0f172a !important;
+}
+
+:global(html.dark) .login-form-header h2 {
+    color: #f8fafc !important;
+}
+
+:global(html.dark) .login-form-header p {
+    color: #94a3b8 !important;
+}
+
+:global(html.dark) .lf-group label {
+    color: #cbd5e1 !important;
+}
+
+:global(html.dark) .lf-input-wrap input {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+:global(html.dark) .lf-input-wrap input:focus {
+    border-color: #0d9488 !important;
+    background: #0f172a !important;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.18) !important;
+}
+
+:global(html.dark) .lf-input-wrap input::placeholder {
+    color: #64748b !important;
+}
+
+:global(html.dark) .lf-remember {
+    color: #94a3b8 !important;
+}
+
+:global(html.dark) .lf-register {
+    color: #94a3b8 !important;
+}
+
+:global(html.dark) .lf-divider::before,
+:global(html.dark) .lf-divider::after {
+    background: #334155 !important;
+}
+
+:global(html.dark) .lf-divider span {
+    color: #64748b !important;
+}
+
+:global(html.dark) .flash-success {
+    background: #022c22 !important;
+    border-color: #065f46 !important;
+    color: #6ee7b7 !important;
+}
 
 .auth-theme-toggle {
     margin-bottom: 18px;
@@ -508,5 +567,11 @@ function submit() {
     font-weight: 700;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+:global(html.dark) .auth-theme-toggle {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #5eead4 !important;
 }
 </style>
